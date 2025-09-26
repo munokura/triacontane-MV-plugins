@@ -53,9 +53,9 @@ https://triacontane.blogspot.com
 AutomaticState.js
 
 Grant the specified state while the conditions are met.
-Enter the conditions in the state's memo field using the following format:
+Enter the conditions in the state's note field using the following format:
 
-Memo field format (control characters are allowed in the state ID)
+Note field format (control characters are allowed in the state ID)
 
 1. Conditions for Automatic State Grant
 <AS上限HP: (HP percentage [percentage])>

@@ -93,7 +93,7 @@ Specify the flash colors in the following order: "Red," "Green," "Blue,"
 and "Strength," separated by commas.
 
 If you want a message to pop up when a state is assigned
-Specify the following in the state's memo field.
+Specify the following in the state's note field.
 <BEPMessage:state>
  # The message "state" will be displayed when the state is assigned.
  # If image usage is enabled, specify the file name.

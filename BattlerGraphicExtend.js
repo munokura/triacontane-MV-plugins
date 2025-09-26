@@ -19,7 +19,7 @@ This expands the representation of battler images during battle.
 A variety of effects are possible, such as floating in the air, changing
 color tone and size.
 
-Enter the following in the memo field of the feature database.
+Enter the following in the note field of the feature database.
 
 Makes the battler float. This setting is only valid for actors.
 <BGEAltitude: n> n: Altitude (pixels)

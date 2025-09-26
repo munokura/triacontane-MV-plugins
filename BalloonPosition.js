@@ -54,12 +54,12 @@ This plugin is now yours.
 @type variable
 
 @param BalloonXEvent
-@desc This variable retrieves the X coordinate of the event's speech bubble. When a value is present, it takes precedence over the settings in the memo field.
+@desc This variable retrieves the X coordinate of the event's speech bubble. When a value is present, it takes precedence over the settings in the note field.
 @default 0
 @type variable
 
 @param BalloonYEvent
-@desc This variable retrieves the Y coordinate of the event's speech bubble. When a value is present, it takes precedence over the memo field's specification.
+@desc This variable retrieves the Y coordinate of the event's speech bubble. When a value is present, it takes precedence over the note field's specification.
 @default 0
 @type variable
 */
