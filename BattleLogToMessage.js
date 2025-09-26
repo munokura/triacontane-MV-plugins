@@ -1,0 +1,486 @@
+//=============================================================================
+// BattleLogToMessage.js
+// ----------------------------------------------------------------------------
+// (C) 2016 Triacontane
+// This software is released under the MIT License.
+// http://opensource.org/licenses/mit-license.php
+// ----------------------------------------------------------------------------
+// Version
+// 1.11.0 2022/05/10 スキル名の簡易表示が有効なときスキルにアイコンを表示するよう仕様変更
+// 1.10.2 2021/03/09 戦闘から逃走、敗北した際はログウィンドウが消えるよう修正
+// 1.10.1 2020/06/04 1.9.1の修正により、ステータスウィンドウを下部に配置するとメッセージの上に表示されてしまう問題を修正
+// 1.10.0 2020/05/30 バトルログウィンドウのフォントサイズを変更できる機能を追加
+// 1.9.2 2020/04/30 1.9.1の修正が不完全だったので再度修正
+// 1.9.1 2020/04/29 GraphicalDesignMode.jsと併用したときバトルログウィンドウの位置変更が反映されない問題を修正
+// 1.9.0 2019/06/09 表示メッセージが行数の上限を上回った場合に表示がカットされないよう変更
+// 1.8.0 2019/04/14 もともとメッセージウィンドウで表示していたものはそのまま表示する設定を追加
+// 1.7.0 2018/05/30 スキル名、アイテム名を簡易表示する機能を追加
+// 1.6.1 2018/05/05 YEP_MessageCore.jsが有効な場合、メッセージウィンドウの行数はYEP_MessageCore.jsを優先するよう修正
+// 1.6.0 2018/03/25 バトルログに表示する内容が空の時、ウィンドウを非表示にできる機能を追加
+// 1.5.0 2018/03/25 バトルログの行数を変更できる機能を追加。表示するメッセージが空の場合はメッセージ表示をしないよう変更
+// 1.4.1 2018/02/10 戦闘終了のメッセージ表示後にログウィンドウが一瞬だけ残ってしまう現象を修正
+// 1.4.0 2018/02/10 メッセージウィンドウを画面上部に固定できる機能を追加
+// 1.3.0 2016/10/25 バトルイベント実行中などでログウィンドウを閉じることのできる機能を追加
+// 1.2.0 2016/10/18 メッセージスピードの調整機能と、行動終了後に追加ウェイトする機能を追加
+// 1.1.0 2016/10/14 ダメージのポップアップを抑制する機能を追加
+// 1.0.0 2016/10/12 初版
+// ----------------------------------------------------------------------------
+// [Blog]   : https://triacontane.blogspot.jp/
+// [Twitter]: https://twitter.com/triacontane/
+// [GitHub] : https://github.com/triacontane/
+//=============================================================================
+
+/*:
+@url https://triacontane.blogspot.com/
+@plugindesc Battlelog message display plugin
+@author Triacontane
+@license MIT License
+
+@help
+English Help Translator: munokura
+This is an unofficial English translation of the plugin help,
+created to support global RPG Maker users.
+Feedback is welcome to improve translation quality
+(see: https://github.com/munokura/triacontane-MV-plugins ).
+Original plugin by Triacontane.
+Please check the latest official version at:
+https://triacontane.blogspot.com
+-----
+
+Changes the display of the battle log to a message window at the bottom
+of the screen.
+
+Plugin Command Details
+Execute from the "Plugin Command" event command.
+(Separate parameters with a space.)
+
+BLM_BATTLE_LOG_CLOSE
+
+Closes the battle log window. Execute from a battle event.
+
+BLM_BATTLE_LOG_OPEN
+
+Reopens the battle log window. Execute from a battle event.
+
+Terms of Use:
+You may modify and redistribute this plugin without permission from the
+author, and there are no restrictions on its use (commercial, 18+, etc.).
+This plugin is now yours.
+
+@param StatusPosUpper
+@desc Place command and status windows at the top of the screen so they are not obscured by messages.
+@type boolean
+@default true
+
+@param SuppressPopup
+@desc Hides the damage popup.
+@type boolean
+@default false
+
+@param MessagePosUpper
+@desc Display the entire message window at the top. In that case, disable the status top placement.
+@type boolean
+@default false
+
+@param MessageSpeed
+@desc Changes the message speed to be obtained from the variable with the specified number. The value of the variable will be the frame value.
+@type number
+@default 0
+
+@param WaitForEndAction
+@desc After the action is completed, the message will wait for the specified number of frames before being cleared.
+@type number
+@default 0
+
+@param FontSize
+@desc The font size of the log window.
+@type number
+@default 28
+
+@param MessageLines
+@desc The number of lines in the window. If you reduce the number of lines, messages such as damage indication may not be displayed.
+@type number
+@default 4
+
+@param HiddenIfEmpty
+@desc When a window has no content to display, it becomes hidden.
+@type boolean
+@default false
+
+@param SkillViewSimplified
+@desc Switches the display of skills and items to a centered display with only the names.
+@type boolean
+@default false
+
+@param MessageWindowNoApply
+@desc Anything originally displayed in the message window will no longer be affected by the plugin.
+@type boolean
+@default false
+*/
+
+/*:ja
+@plugindesc バトルログのメッセージ表示プラグイン
+@author トリアコンタン
+
+@param ステータス上部配置
+@desc コマンドやステータスのウィンドウを画面上部に配置して、メッセージによって隠れないようにします。
+@default true
+@type boolean
+
+@param ポップアップ抑制
+@desc ダメージのポップアップを非表示にします。
+@default false
+@type boolean
+
+@param メッセージ上部配置
+@desc メッセージウィンドウ全体を上部に表示します。その場合、ステータス上部配置は無効にしてください。
+@default false
+@type boolean
+
+@param メッセージ速度変数
+@desc メッセージスピードを指定した番号の変数から取得するよう変更します。変数の値がフレーム値になります。
+@default 0
+@type number
+
+@param 行動終了後ウェイト
+@desc 行動終了後、メッセージをクリアする前に指定したフレーム数だけウェイトを掛けます。
+@default 0
+@type number
+
+@param フォントサイズ
+@desc ログウィンドウのフォントサイズです。
+@default 28
+@type number
+
+@param メッセージ行数
+@desc ウィンドウの行数です。行数を減らすとダメージ表示等のメッセージが表示されなくなる場合があります。
+@default 4
+@type number
+
+@param 空の場合に非表示
+@desc ウィンドウに表示する内容がないとき、ウィンドウが非表示になります。
+@default false
+@type boolean
+
+@param スキル名簡易表示
+@desc スキルおよびアイテムの表示を名称のみの中央表示に切り替えます。
+@default false
+@type boolean
+
+@param メッセージウィンドウ非適用
+@desc もともとメッセージウィンドウに表示していたものはプラグインの影響を受けなくなります。
+@default false
+@type boolean
+
+@help バトルログを画面下部のメッセージウィンドウ内に表示するよう変更します。
+
+プラグインコマンド詳細
+ イベントコマンド「プラグインコマンド」から実行。
+ （パラメータの間は半角スペースで区切る）
+
+ BLM_バトルログ閉じる
+ BLM_BATTLE_LOG_CLOSE
+
+ バトルログのウィンドウを閉じます。バトルイベントから実行します。
+
+ BLM_バトルログ開く
+ BLM_BATTLE_LOG_OPEN
+
+ バトルログのウィンドウを再度開きます。バトルイベントから実行します。
+
+利用規約：
+ 作者に無断で改変、再配布が可能で、利用形態（商用、18禁利用等）
+ についても制限はありません。
+ このプラグインはもうあなたのものです。
+*/
+
+(function () {
+    'use strict';
+    var pluginName = 'BattleLogToMessage';
+    var metaTagPrefix = 'BLM';
+
+    var getCommandName = function (command) {
+        return (command || '').toUpperCase();
+    };
+
+    var getParamOther = function (paramNames) {
+        if (!Array.isArray(paramNames)) paramNames = [paramNames];
+        for (var i = 0; i < paramNames.length; i++) {
+            var name = PluginManager.parameters(pluginName)[paramNames[i]];
+            if (name) return name;
+        }
+        return null;
+    };
+
+    var getParamNumber = function (paramNames, min, max) {
+        var value = getParamOther(paramNames);
+        if (arguments.length < 2) min = -Infinity;
+        if (arguments.length < 3) max = Infinity;
+        return (parseInt(value, 10) || 0).clamp(min, max);
+    };
+
+    var getParamBoolean = function (paramNames) {
+        var value = getParamOther(paramNames);
+        return (value || '').toUpperCase() === 'ON' || (value || '').toUpperCase() === 'TRUE';
+    };
+
+    //=============================================================================
+    // パラメータの取得と整形
+    //=============================================================================
+    var paramStatusPosUpper = getParamBoolean(['StatusPosUpper', 'ステータス上部配置']);
+    var paramSuppressPopup = getParamBoolean(['SuppressPopup', 'ポップアップ抑制']);
+    var paramMessagePosUpper = getParamBoolean(['MessagePosUpper', 'メッセージ上部配置']);
+    var paramMessageSpeed = getParamNumber(['MessageSpeed', 'メッセージ速度変数'], 0);
+    var paramWaitForEndAction = getParamNumber(['WaitForEndAction', '行動終了後ウェイト'], 0);
+    var paramMessageLines = getParamNumber(['MessageLines', 'メッセージ行数'], 0);
+    var paramHiddenIfEmpty = getParamBoolean(['HiddenIfEmpty', '空の場合に非表示']);
+    var paramSkillViewSimplified = getParamBoolean(['SkillViewSimplified', 'スキル名簡易表示']);
+    var paramMessageWindowNoApply = getParamBoolean(['MessageWindowNoApply', 'メッセージウィンドウ非適用']);
+    var paramFontSize = getParamNumber(['FontSize', 'フォントサイズ']);
+
+    var _Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
+    Game_Interpreter.prototype.pluginCommand = function (command, args) {
+        _Game_Interpreter_pluginCommand.apply(this, arguments);
+        var commandPrefix = new RegExp('^' + metaTagPrefix);
+        if (!command.match(commandPrefix)) return;
+        this.pluginCommandBattleLogToMessage(command.replace(commandPrefix, ''), args);
+    };
+
+    Game_Interpreter.prototype.pluginCommandBattleLogToMessage = function (command) {
+        switch (getCommandName(command)) {
+            case '_BATTLE_LOG_OPEN':
+            case '_バトルログ開く':
+                BattleManager.setBattleLogClose(false);
+                break;
+            case '_BATTLE_LOG_CLOSE':
+            case '_バトルログ閉じる':
+                BattleManager.setBattleLogClose(true);
+                break;
+        }
+    };
+
+    //=============================================================================
+    // BattleManager
+    //  ウィンドウの開閉状態を管理します。
+    //=============================================================================
+    var _BattleManager_initMembers = BattleManager.initMembers;
+    BattleManager.initMembers = function () {
+        _BattleManager_initMembers.apply(this, arguments);
+        this._battleLogClose = false;
+    };
+
+    BattleManager.setBattleLogClose = function (value) {
+        this._battleLogClose = value;
+    };
+
+    BattleManager.isBattleLogClose = function () {
+        return this._battleLogClose;
+    };
+
+    var _BattleManager_displayRewards = BattleManager.displayRewards;
+    BattleManager.displayRewards = function () {
+        this._logWindow.hide();
+        _BattleManager_displayRewards.apply(this, arguments);
+    };
+
+    var _BattleManager_endBattle = BattleManager.endBattle;
+    BattleManager.endBattle = function (result) {
+        _BattleManager_endBattle.apply(this, arguments);
+        this._logWindow.hide();
+    };
+
+    SceneManager.isBattleScene = function () {
+        return this._scene instanceof Scene_Battle;
+    };
+
+    BattleManager.isStarting = function () {
+        return this._phase === 'start';
+    };
+
+    //=============================================================================
+    // Scene_Battle
+    //  ウィンドウのレイアウトを変更します。
+    //=============================================================================
+    var _Scene_Battle_createAllWindows = Scene_Battle.prototype.createAllWindows;
+    Scene_Battle.prototype.createAllWindows = function () {
+        _Scene_Battle_createAllWindows.apply(this, arguments);
+        // GraphicalDesignMode.jsと競合するので無効化
+        if (!this._logWindow.loadProperty) {
+            this._windowLayer.removeChild(this._logWindow);
+            this._windowLayer.addChildAt(this._logWindow, this._windowLayer.getChildIndex(this._messageWindow) - 1);
+        }
+        if (paramStatusPosUpper) {
+            this.adjustWindowPositions();
+        }
+        if (paramMessagePosUpper) {
+            this.adjustWindowMessagePositions();
+        }
+    };
+
+    Scene_Battle.prototype.adjustWindowPositions = function () {
+        this._partyCommandWindow.y = 0;
+        this._actorCommandWindow.y = 0;
+        this._statusWindow.y = 0;
+        this._helpWindow.y = this._partyCommandWindow.height;
+        this._actorWindow.y = 0;
+        this._enemyWindow.y = 0;
+        this._skillWindow.y = this._helpWindow.y + this._helpWindow.height;
+        this._itemWindow.y = this._skillWindow.y;
+    };
+
+    Scene_Battle.prototype.adjustWindowMessagePositions = function () {
+        this._messageWindow.y = 0;
+        this._logWindow.y = 0;
+    };
+
+    var _Scene_Battle_updateWindowPositions = Scene_Battle.prototype.updateWindowPositions;
+    Scene_Battle.prototype.updateWindowPositions = function () {
+        if (BattleManager.isInputting() || BattleManager.isBattleLogClose() || BattleManager.isStarting()) {
+            this._logWindow.close();
+        } else {
+            this._logWindow.open();
+        }
+        _Scene_Battle_updateWindowPositions.apply(this, arguments);
+    };
+
+    //=============================================================================
+    // Window_BattleLog
+    //  ウィンドウのレイアウトを変更します。
+    //=============================================================================
+    var _Window_BattleLog_initialize = Window_BattleLog.prototype.initialize;
+    Window_BattleLog.prototype.initialize = function () {
+        _Window_BattleLog_initialize.apply(this, arguments);
+        this.y = Graphics.boxHeight - this.windowHeight();
+        this.opacity = 255;
+        this.openness = 0;
+    };
+
+    Window_BattleLog.prototype.maxLines = function () {
+        return paramMessageLines || 4;
+    };
+
+    var _Window_BattleLog_update = Window_BattleLog.prototype.update;
+    Window_BattleLog.prototype.update = function () {
+        Window_Base.prototype.update.apply(this, arguments);
+        _Window_BattleLog_update.apply(this, arguments);
+    };
+
+    var _Window_BattleLog_refresh = Window_BattleLog.prototype.refresh;
+    Window_BattleLog.prototype.refresh = function () {
+        _Window_BattleLog_refresh.apply(this, arguments);
+        if (!paramHiddenIfEmpty) {
+            return;
+        }
+        if (this._lines.length <= 0) {
+            this.hide();
+        } else {
+            this.show();
+        }
+    };
+
+    var _Window_BattleLog_messageSpeed = Window_BattleLog.prototype.messageSpeed;
+    Window_BattleLog.prototype.messageSpeed = function () {
+        return (paramMessageSpeed ? $gameVariables.value(paramMessageSpeed) :
+            _Window_BattleLog_messageSpeed.apply(this, arguments));
+    };
+
+    Window_BattleLog.prototype.waitForCustom = function (waitCount) {
+        this._waitCount = waitCount;
+    };
+
+    var _Window_BattleLog_endAction = Window_BattleLog.prototype.endAction;
+    Window_BattleLog.prototype.endAction = function (subject) {
+        if (paramWaitForEndAction) {
+            this.push('waitForCustom', paramWaitForEndAction);
+        }
+        _Window_BattleLog_endAction.apply(this, arguments);
+    };
+
+    var _Window_BattleLog_standardFontSize = Window_BattleLog.prototype.standardFontSize;
+    Window_BattleLog.prototype.standardFontSize = function () {
+        return paramFontSize || _Window_BattleLog_standardFontSize.apply(this, arguments);
+    };
+
+    var _Window_BattleLog_addText = Window_BattleLog.prototype.addText;
+    Window_BattleLog.prototype.addText = function (text) {
+        if (!text) {
+            return;
+        }
+        if (this._lines.length >= this.maxLines()) {
+            this._waitCount = 0;
+            this.push('clear');
+            this.push('addText', text);
+            return;
+        }
+        _Window_BattleLog_addText.apply(this, arguments);
+    };
+
+    Window_BattleLog.prototype.drawBackground = function () { };
+
+    if (paramSkillViewSimplified) {
+        Window_BattleLog.prototype.displayAction = function (subject, item) {
+            var text = '\\i[' + item.iconIndex + ']' + item.name;
+            this.push('addText', text);
+            this._displayCenterText = text;
+        };
+
+        var _Window_BattleLog_drawLineText = Window_BattleLog.prototype.drawLineText;
+        Window_BattleLog.prototype.drawLineText = function (index) {
+            if (this._displayCenterText === this._lines[index]) {
+                var rect = this.itemRectForText(index);
+                var realWidth = this.drawTextEx(this._lines[index], rect.x, -rect.height, rect.width);
+                rect.x += (rect.width / 2 - realWidth / 2);
+                this.contents.clearRect(rect.x, rect.y, rect.width, rect.height);
+                this.drawTextEx(this._lines[index], rect.x, rect.y, rect.width);
+            } else {
+                _Window_BattleLog_drawLineText.apply(this, arguments);
+            }
+        };
+
+        var _Window_BattleLog_endAction2 = Window_BattleLog.prototype.endAction;
+        Window_BattleLog.prototype.endAction = function (subject) {
+            this._displayCenterText = null;
+            _Window_BattleLog_endAction2.apply(this, arguments);
+        };
+    }
+
+    //=============================================================================
+    // Window_Message
+    //  戦闘中はメッセージウィンドウを上部に固定します。
+    //=============================================================================
+    if (!paramMessageWindowNoApply) {
+        var _Window_Message_updatePlacement = Window_Message.prototype.updatePlacement;
+        Window_Message.prototype.updatePlacement = function () {
+            _Window_Message_updatePlacement.apply(this, arguments);
+            if ($gameParty.inBattle() && paramMessagePosUpper) {
+                this.y = 0;
+            }
+        };
+
+        var _Window_Message_numVisibleRows = Window_Message.prototype.numVisibleRows;
+        Window_Message.prototype.numVisibleRows = function () {
+            if (SceneManager.isBattleScene() && paramMessageLines > 0 && !$gameSystem.messageRows) {
+                return paramMessageLines;
+            } else {
+                return _Window_Message_numVisibleRows.apply(this, arguments);
+            }
+        };
+    }
+
+    //=============================================================================
+    // Game_Battler
+    //  ダメージポップアップを抑制します。
+    //=============================================================================
+    var _Game_Battler_startDamagePopup = Game_Battler.prototype.startDamagePopup;
+    Game_Battler.prototype.startDamagePopup = function () {
+        if (!paramSuppressPopup) _Game_Battler_startDamagePopup.apply(this, arguments);
+    };
+
+    var _Game_Message_add = Game_Message.prototype.add;
+    Game_Message.prototype.add = function (text) {
+        if (!text && $gameParty.inBattle()) {
+            return;
+        }
+        _Game_Message_add.apply(this, arguments);
+    };
+})();

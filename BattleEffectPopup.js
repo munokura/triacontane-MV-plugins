@@ -1,0 +1,1147 @@
+//=============================================================================
+// BattleEffectPopup.js
+// ----------------------------------------------------------------------------
+// (C)2016 Triacontane
+// This software is released under the MIT License.
+// http://opensource.org/licenses/mit-license.php
+// ----------------------------------------------------------------------------
+// Version
+// 1.12.2 2024/04/27 デバッグ用のログ出力を削除
+// 1.12.1 2023/10/24 物理ダメージ率および魔法ダメージ率によってダメージが無効化されたときもガードのポップアップ判定を有効にするよう修正
+// 1.12.0 2022/03/25 バフおよびデバフをポップアップする機能を追加
+// 1.11.4 2022/02/11 自動戦闘や他のプラグインと組み合わせたとき、耐性や弱点のポップアップが意図せず表示される場合がある問題を修正
+// 1.11.3 2021/10/10 一度の行動で複数のポップアップが発生したときに最後のポップアップしか表示されない問題を修正
+// 1.11.2 2021/09/01 1.11.1の修正で通常モンスターのポップアップ位置がずれてしまう問題を修正
+// 1.11.1 2021/08/29 BigEnemy.jsと併用したとき、ポップアップがダメージと同じ場所に出るよう修正
+// 1.11.0 2021/05/03 ポップアップの縁取りカラーを指定できる機能を追加
+// 1.10.1 2021/04/22 身代わりポップアップの対象を身代わりした側とされた側で選べるよう修正
+// 1.10.0 2021/04/21 身代わり発生時にポップアップする機能を追加
+// 1.9.3 2021/02/24 ポップアップの出力が一部を除き、少し遅れて表示される問題を修正(by 奏ねこまさま)
+// 1.9.2 2020/04/15 MOG_BattleHud.jsと併用したとき、フロントビューで味方にポップアップメッセージが表示されるよう変更
+// 1.9.1 2020/03/15 YEP_X_ActSeqPack1.jsでステート付与に成功してもステート付与メッセージがでない不具合を代わりに修正
+// 1.9.0 2020/02/11 ポップアップメッセージが重なったときに次のポップアップまでのウェイトが指定できる機能を追加
+// 1.8.1 2019/02/26 KMS_SomStyleDamage.jsとの競合を解消。こちらのポップアップもKMS_SomStyleDamage.jsと同じ動きをします。
+// 1.8.0 2018/10/13 パラメータの型指定機能に対応
+//                  コモンイベントが呼び出された場合は無効ポップアップを出さないよう仕様変更
+// 1.7.2 2018/10/07 プラグインコマンド「対象者ポップアップ」にて競合等の理由で対象が見付からない場合にエラーを回避するよう修正
+// 1.7.1 2017/08/03 YEP_BattleEngineCore.jsと併用したときに、メッセージの種類によってポップアップ位置が変化する問題を修正
+// 1.7.0 2017/06/13 行動がガード（耐性によって完全に防がれた）された場合のポップアップを追加
+// 1.6.0 2017/06/10 行動が無効だった場合のポップアップを追加
+// 1.5.1 2017/06/10 自動戦闘が有効なアクターがいる場合に一部機能が正常に動作しない問題を修正
+// 1.5.0 2017/05/30 弱点と耐性のポップアップで弱点や耐性と見なすための閾値を設定できる機能を追加
+// 1.4.0 2017/05/20 CounterExtend.jsとの併用でスキルによる反撃が表示されない問題を修正。
+//                  ポップアップのイタリック体および縁取り表示を行う機能を追加。
+// 1.3.1 2016/12/18 VE_BasicModule.jsとの競合を解消
+// 1.3.0 2016/07/14 アクターと敵キャラの通常ダメージにも専用のフラッシュ色を指定できるようになりました。
+// 1.2.3 2016/07/13 1.2.2の修正が不完全だったのを対応
+// 1.2.2 2016/07/13 YEP_BattleEngineCore.jsと併用したときに、Missが重複して表示される現象を修正
+// 1.2.1 2016/07/12 Z座標を指定しているプラグインとの競合を解消するかもしれない
+// 1.2.0 2016/07/10 行動失敗時(Miss!)も任意の文字または画像に置き換えられるようになりました。
+// 1.1.0 2016/07/09 ポップアップに任意の画像を指定できるようになりました。
+//                  フラッシュするフレーム数を指定できるようになりました。
+// 1.0.0 2016/07/06 初版
+// ----------------------------------------------------------------------------
+// [Blog]   : https://triacontane.blogspot.jp/
+// [Twitter]: https://twitter.com/triacontane/
+// [GitHub] : https://github.com/triacontane/
+//=============================================================================
+
+/*:
+@url https://triacontane.blogspot.com/
+@plugindesc Battle Action Results Popup Plugin
+@author Triacontane
+@license MIT License
+
+@help
+English Help Translator: munokura
+This is an unofficial English translation of the plugin help,
+created to support global RPG Maker users.
+Feedback is welcome to improve translation quality
+(see: https://github.com/munokura/triacontane-MV-plugins ).
+Original plugin by Triacontane.
+Please check the latest official version at:
+https://triacontane.blogspot.com
+-----
+
+Displays a pop-up message indicating the outcome of an action during
+battle. The pop-up message can be a dynamically generated string or a
+pre-defined picture.
+The display conditions are as follows:
+
+- Failure (Normal Miss messages will no longer be displayed)
+- Evade (Normal Miss messages will no longer be displayed)
+- Invalidated (The action was successful, but no effective effect was
+found)
+- Guard (The action was successful, but was completely blocked by the
+opponent's resistance)
+- Critical
+- Counterattack
+- Magic Reflection
+- Weakness (When the damage multiplier exceeds 1.0)
+- Resistance (When the damage multiplier falls below 1.0)
+- Grant State (Can be set for each state)
+- Common Event (Executed via plugin command)
+
+*Guard will only be displayed if there is an effect with a state or
+attribute effectiveness of 0%
+and no other effective effects.
+Note that it will not be displayed if the action was blocked by
+"State Invalidation."
+
+You can also specify a flash color for the popup.
+Specify the flash colors in the following order: "Red," "Green," "Blue,"
+and "Strength," separated by commas.
+
+If you want a message to pop up when a state is assigned
+Specify the following in the state's memo field.
+<BEPMessage:state>
+ # The message "state" will be displayed when the state is assigned.
+ # If image usage is enabled, specify the file name.
+<BEPFlashColor:255,255,255,255>
+ # Specifies the flash color when the state is assigned.
+
+You can also freely pop up any text using plugin commands.
+This command is only available for battle events.
+
+Plugin Command Details
+Execute from the "Plugin Command" event command.
+(Separate parameters with a space.)
+
+BEP_TARGET_POPUP message 255, 0, 0, 255
+ # A message will pop up for the target of the action.
+
+BEP_USER_POPUP message 255, 0, 0, 255
+ # A message will pop up for the user of the action.
+
+*If image usage is enabled, specify the file name.
+
+Conflict Information
+Please place this plugin below the following plugins:
+
+YEP_BattleEngineCore.js
+
+Terms of Use:
+You may modify and redistribute this plugin without permission from the
+author, and there are no restrictions on its use (commercial, 18+, etc.).
+This plugin is now yours.
+
+@param MessageWait
+@desc The number of frames to wait before displaying the next popup message when popup messages overlap.
+@type number
+@default 12
+
+@param Critical
+@desc Pop-up message or file name when a critical event occurs. (img/pictures/) No extension required
+@type file
+@default CRITICAL!
+@require 1
+@dir img/pictures/
+
+@param CriticalColor
+@desc The flash color of the text when a critical hit occurs. Specify the color in the order of R (red), G (green), B (blue), A (strength), separated by a comma (,).
+@default 255,0,0,255
+
+@param Avoid
+@desc The popup message or file name when the avoidance occurs.
+@type file
+@default Avoid!
+@require 1
+@dir img/pictures/
+
+@param AvoidColor
+@desc The color of the text flashes when an evasion occurs.
+@default 0,128,255,255
+
+@param Buff
+@desc This is the popup message or file name when a buff occurs. %1 will be converted to the target parameter name.
+@type file
+@default %1 UP!
+@require 1
+@dir img/pictures/
+
+@param BuffColor
+@desc The color of the text flashing when a buff occurs.
+@default 0,128,255,255
+
+@param Debuff
+@desc This is the popup message or file name when a debuff occurs. %1 will be converted to the target parameter name.
+@type file
+@default %1 Down!
+@require 1
+@dir img/pictures/
+
+@param DebuffColor
+@desc This is the color of the text flashing when a debuff occurs.
+@default 255,128,0,255
+
+@param ParamName
+@desc Parameter names to use in the buff popup, separated by commas.
+@default MaxHP,MaxMP,ATK,DEF,MAG,MDF,AGI,LUK
+
+@param MissColor
+@desc The color that the text flashes when a mistake occurs.
+@default 0,0,0,0
+
+@param Invalid
+@desc The popup message or file name when the action was invalid (the action was successful but had no effective effect).
+@type file
+@default Invalid!
+@require 1
+@dir img/pictures/
+
+@param InvalidColor
+@desc The color of the flash when an invalid event occurs.
+@default 0,0,0,0
+
+@param Guard
+@desc This is the popup message or file name when an action is guarded (the action was successful but completely blocked by the opponent's resistance).
+@type file
+@default Guard!
+@require 1
+@dir img/pictures/
+
+@param GuardColor
+@desc The color of the text flashes when a guard occurs.
+@default 0,128,255,255
+
+@param Reflection
+@desc The popup message or file name when reflecting magic.
+@type file
+@default Reflection!
+@require 1
+@dir img/pictures/
+
+@param ReflectionColor
+@desc The color of the text flashes when magic is reflected.
+@default 0,128,255,255
+
+@param Counter
+@desc The popup message or file name when counterattacking.
+@type file
+@default Counter!
+@require 1
+@dir img/pictures/
+
+@param CounterColor
+@desc This is the color that the text flashes when a counterattack occurs.
+@default 0,128,255,255
+
+@param Substitute
+@desc This is the pop-up message or file name when substituting.
+@type file
+@default Substitute!
+@require 1
+@dir img/pictures/
+
+@param SubstituteTarget
+@desc When enabled, the substitute popup will be targeted at the "substitute" party.
+@type boolean
+@default false
+
+@param SubstituteColor
+@desc This is the color of the text that flashes when a substitute occurs.
+@default 0,128,255,255
+
+@param Weakness
+@desc The pop-up message or file name when a vulnerability is found.
+@type file
+@default Weakness!
+@require 1
+@dir img/pictures/
+
+@param WeaknessColor
+@desc This is the color that the text flashes when a weak point occurs.
+@default 0,255,128,255
+
+@param WeaknessLine
+@desc Anything above this value will be considered a weakness. Specify as a percentage.
+@default 200
+
+@param Resistance
+@desc The pop-up message or file name when a vulnerability is found.
+@type file
+@default Resistance!
+@require 1
+@dir img/pictures/
+
+@param ResistanceColor
+@desc This is the color that the text flashes when resistance occurs.
+@default 0,0,128,255
+
+@param ResistanceLine
+@desc Anything below this value is considered to be resistant. Specify as a percentage.
+@default 50
+
+@param ActorDamageColor
+@desc Actor damage flash color.
+@default 0,0,0,0
+
+@param EnemyDamageColor
+@desc This is the flash color of enemy character damage.
+@default 0,0,0,0
+
+@param FontSize
+@desc The font size of the popup.
+@default 42
+
+@param MaxWidth
+@desc The maximum width of the popup message.
+@default 240
+
+@param FlashDuration
+@desc The number of frames before the flash color fades out.
+@default 60
+
+@param OffsetX
+@desc The X coordinate correction value.
+@default 0
+
+@param OffsetY
+@desc The Y coordinate correction value.
+@default -40
+
+@param UsingItalic
+@desc The popup appears in italics.
+@type boolean
+@default false
+
+@param UsingOutline
+@desc The popup will appear outlined.
+@type boolean
+@default false
+
+@param OutlineColor
+@desc Popup border color. You can use CSS text color.
+@default gray
+
+@param UsingPicture
+@desc Use any picture (img/pictures) for various popups. Enter the file name instead of the message.
+@type boolean
+@default false
+*/
+
+/*:ja
+@plugindesc 戦闘行動結果ポップアッププラグイン
+@author トリアコンタン
+
+@param メッセージウェイト
+@desc ポップアップメッセージが重なったときに次のメッセージが表示されるまでのウェイトフレーム数です。
+@default 12
+@type number
+
+@param クリティカル
+@desc クリティカル発生時のポップアップメッセージまたはファイル名です。(img/pictures/)拡張子不要
+@default CRITICAL!
+@require 1
+@dir img/pictures/
+@type file
+
+@param クリティカルカラー
+@desc クリティカル発生時の文字のフラッシュ色です。R(赤),G(緑),B(青),A(強さ)の順番でカンマ(,)区切りで指定。
+@default 255,0,0,255
+
+@param 回避
+@desc 回避発生時のポップアップメッセージまたはファイル名です。
+@default Avoid!
+@require 1
+@dir img/pictures/
+@type file
+
+@param 回避カラー
+@desc 回避発生時の文字のフラッシュ色です。
+@default 0,128,255,255
+
+@param バフ
+@desc バフ発生時のポップアップメッセージまたはファイル名です。%1で対象パラメータ名称に変換されます。
+@default %1 UP!
+@require 1
+@dir img/pictures/
+@type file
+
+@param バフカラー
+@desc バフ発生時の文字のフラッシュ色です。
+@default 0,128,255,255
+
+@param デバフ
+@desc デバフ発生時のポップアップメッセージまたはファイル名です。%1で対象パラメータ名称に変換されます。
+@default %1 Down!
+@require 1
+@dir img/pictures/
+@type file
+
+@param デバフカラー
+@desc デバフ発生時の文字のフラッシュ色です。
+@default 255,128,0,255
+
+@param パラメータ名称
+@desc バフのポップアップで使うパラメータ名称です。カンマ区切りで指定します。
+@default MaxHP,MaxMP,ATK,DEF,MAG,MDF,AGI,LUK
+
+@param ミスカラー
+@desc ミス発生時の文字のフラッシュ色です。
+@default 0,0,0,0
+
+@param 無効
+@desc 行動が無効（行動は成功したが有効な効果がなかった）だった時のポップアップメッセージまたはファイル名です。
+@default Invalid!
+@require 1
+@dir img/pictures/
+@type file
+
+@param 無効カラー
+@desc 無効発生時の文字のフラッシュ色です。
+@default 0,0,0,0
+
+@param ガード
+@desc 行動がガード（行動は成功したが相手の耐性によって完全に防がれた）された時のポップアップメッセージまたはファイル名です。
+@default Guard!
+@require 1
+@dir img/pictures/
+@type file
+
+@param ガードカラー
+@desc ガード発生時の文字のフラッシュ色です。
+@default 0,128,255,255
+
+@param 魔法反射
+@desc 魔法反射時のポップアップメッセージまたはファイル名です。
+@default Reflection!
+@require 1
+@dir img/pictures/
+@type file
+
+@param 魔法反射カラー
+@desc 魔法反射発生時の文字のフラッシュ色です。
+@default 0,128,255,255
+
+@param 反撃
+@desc 反撃時のポップアップメッセージまたはファイル名です。
+@default Counter!
+@require 1
+@dir img/pictures/
+@type file
+
+@param 反撃カラー
+@desc 反撃発生時の文字のフラッシュ色です。
+@default 0,128,255,255
+
+@param 身代わり
+@desc 身代わり時のポップアップメッセージまたはファイル名です。
+@default Substitute!
+@require 1
+@dir img/pictures/
+@type file
+
+@param 身代わり対象にポップアップ
+@desc 有効にすると身代わりのポップアップ対象が『身代わりしてもらった側』になります。
+@type boolean
+@default false
+
+@param 身代わりカラー
+@desc 身代わり発生時の文字のフラッシュ色です。
+@default 0,128,255,255
+
+@param 弱点
+@desc 弱点時のポップアップメッセージまたはファイル名です。
+@default Weakness!
+@require 1
+@dir img/pictures/
+@type file
+
+@param 弱点カラー
+@desc 弱点発生時の文字のフラッシュ色です。
+@default 0,255,128,255
+
+@param 弱点閾値
+@desc この値以上なら弱点と見なします。百分率で指定します。
+@default 200
+
+@param 耐性
+@desc 弱点時のポップアップメッセージまたはファイル名です。
+@default Resistance!
+@require 1
+@dir img/pictures/
+@type file
+
+@param 耐性カラー
+@desc 耐性発生時の文字のフラッシュ色です。
+@default 0,0,128,255
+
+@param 耐性閾値
+@desc この値以下なら耐性と見なします。百分率で指定します。
+@default 50
+
+@param 味方ダメージカラー
+@desc アクターダメージのフラッシュ色です。
+@default 0,0,0,0
+
+@param 敵ダメージカラー
+@desc 敵キャラダメージのフラッシュ色です。
+@default 0,0,0,0
+
+@param フォントサイズ
+@desc ポップアップのフォントサイズです。
+@default 42
+
+@param メッセージ最大幅
+@desc ポップアップメッセージの最大幅です。
+@default 240
+
+@param フラッシュ時間
+@desc フラッシュカラーがフェードアウトするまでのフレーム数です。
+@default 60
+
+@param X座標補正
+@desc X座標の補正値です。
+@default 0
+
+@param Y座標補正
+@desc Y座標の補正値です。
+@default -40
+
+@param イタリック表示
+@desc ポップアップがイタリック体で表示されます。
+@default false
+@type boolean
+
+@param 縁取り表示
+@desc ポップアップが縁取り表示されます。
+@default false
+@type boolean
+
+@param 縁取りカラー
+@desc ポップアップの縁取りカラーです。CSSの文字色指定が使えます。
+@default gray
+
+@param 画像使用
+@desc 各種ポップアップに任意のピクチャ(img/pictures)を使用します。メッセージの代わりにファイル名を入力してください。
+@default false
+@type boolean
+
+@noteParam BEPメッセージ
+@noteRequire 1
+@noteDir img/pictures/
+@noteType file
+@noteData items
+
+@help 戦闘中に行動の結果のメッセージをポップアップします。
+ポップアップするのは動的に作成した文字列もしくは用意したピクチャです。
+表示条件は以下の通りです。
+
+・失敗（通常のMissは表示されなくなります）
+・回避（通常のMissは表示されなくなります）
+・無効（行動は成功したが有効な効果がなかった）
+・ガード（行動は成功したが相手の耐性によって完全に防がれた）
+・クリティカル
+・反撃
+・魔法反射
+・弱点（ダメージ倍率が1.0を上回った場合）
+・耐性（ダメージ倍率が1.0を下回った場合）
+・ステート付与（ステートごとに設定できます）
+・コモンイベント（プラグインコマンドから実行します）
+
+※ガードが表示されるのは、ステート有効度もしくは属性有効度が0%の効果が
+存在し、かつ他に有効な効果がない場合です。
+なお、「ステート無効化」で防がれた場合は表示されません。
+
+また、ポップアップ時にフラッシュカラーを指定することができます。
+フラッシュカラーの指定は「赤」「緑」「青」「強さ」の順番で
+カンマ区切りで指定してください。
+
+ステート付与時にメッセージをポップアップをしたい場合
+ステートのメモ欄に以下の通り指定してください。
+<BEPメッセージ:state>       # 付加時にメッセージ「state」が表示されます。
+                            # 画像使用が有効な場合はファイル名を指定します。
+<BEPカラー:255,255,255,255> # 付加時のフラッシュカラーを指定します。
+
+さらに、プラグインコマンドから任意の文字列を自由にポップアップできます。
+このコマンドはバトルイベントのみ使用可能です。
+
+プラグインコマンド詳細
+ イベントコマンド「プラグインコマンド」から実行。
+ （パラメータの間は半角スペースで区切る）
+
+BEP対象者ポップアップ message 255,0,0,255 # 行動の対象者にmessageがポップ。
+BEP_TARGET_POPUP message 255,0,0,255      # 上と同じ
+
+BEP使用者ポップアップ message 255,0,0,255 # 行動の使用者にmessageがポップ。
+BEP_USER_POPUP message 255,0,0,255        # 上と同じ
+
+※画像使用が有効な場合はファイル名を指定します。
+
+競合に関する情報
+当プラグインは以下のプラグインより下に配置してください。
+
+YEP_BattleEngineCore.js
+
+利用規約：
+ 作者に無断で改変、再配布が可能で、利用形態（商用、18禁利用等）
+ についても制限はありません。
+ このプラグインはもうあなたのものです。
+*/
+
+(function () {
+    'use strict';
+    var pluginName = 'BattleEffectPopup';
+    var metaTagPrefix = 'BEP';
+
+    var getCommandName = function (command) {
+        return (command || '').toUpperCase();
+    };
+
+    var getParamOther = function (paramNames) {
+        if (!Array.isArray(paramNames)) paramNames = [paramNames];
+        for (var i = 0; i < paramNames.length; i++) {
+            var name = PluginManager.parameters(pluginName)[paramNames[i]];
+            if (name) return name;
+        }
+        return null;
+    };
+
+    var getParamString = function (paramNames) {
+        var value = getParamOther(paramNames);
+        return value === null ? '' : value;
+    };
+
+    var getParamBoolean = function (paramNames) {
+        var value = getParamOther(paramNames);
+        return (value || '').toUpperCase() === 'ON' || (value || '').toUpperCase() === 'TRUE';
+    };
+
+    var getParamNumber = function (paramNames, min, max) {
+        var value = getParamOther(paramNames);
+        if (arguments.length < 2) min = -Infinity;
+        if (arguments.length < 3) max = Infinity;
+        return (parseInt(value, 10) || 0).clamp(min, max);
+    };
+
+    var getParamArrayString = function (paramNames) {
+        var values = getParamString(paramNames).split(',');
+        for (var i = 0; i < values.length; i++) values[i] = values[i].trim();
+        return values;
+    };
+
+    var getParamArrayNumber = function (paramNames, min, max) {
+        var values = getParamArrayString(paramNames);
+        if (arguments.length < 2) min = -Infinity;
+        if (arguments.length < 3) max = Infinity;
+        for (var i = 0; i < values.length; i++) {
+            if (!isNaN(parseInt(values[i], 10))) {
+                values[i] = (parseInt(values[i], 10) || 0).clamp(min, max);
+            } else {
+                values.splice(i--, 1);
+            }
+        }
+        return values;
+    };
+
+    var getArgString = function (arg, upperFlg) {
+        arg = convertEscapeCharacters(arg);
+        return upperFlg ? arg.toUpperCase() : arg;
+    };
+
+    var getArgArrayNumber = function (args, min, max) {
+        var values = getArgArrayString(args, false);
+        if (arguments.length < 2) min = -Infinity;
+        if (arguments.length < 3) max = Infinity;
+        for (var i = 0; i < values.length; i++) values[i] = (parseInt(values[i], 10) || 0).clamp(min, max);
+        return values;
+    };
+
+    var getArgArrayString = function (args, upperFlg) {
+        var values = getArgString(args, upperFlg).split(',');
+        for (var i = 0; i < values.length; i++) values[i] = values[i].trim();
+        return values;
+    };
+
+    var convertEscapeCharacters = function (text) {
+        if (text == null) text = '';
+        var windowLayer = SceneManager._scene._windowLayer;
+        return windowLayer ? windowLayer.children[0].convertEscapeCharacters(text) : text;
+    };
+
+    var getMetaValue = function (object, name) {
+        var metaTagName = metaTagPrefix + (name ? name : '');
+        return object.meta.hasOwnProperty(metaTagName) ? object.meta[metaTagName] : undefined;
+    };
+
+    var getMetaValues = function (object, names) {
+        if (!Array.isArray(names)) return getMetaValue(object, names);
+        for (var i = 0, n = names.length; i < n; i++) {
+            var value = getMetaValue(object, names[i]);
+            if (value !== undefined) return value;
+        }
+        return undefined;
+    };
+
+    //=============================================================================
+    // パラメータの取得と整形
+    //=============================================================================
+    var paramCritical = getParamString(['Critical', 'クリティカル']);
+    var paramCriticalColor = getParamArrayNumber(['CriticalColor', 'クリティカルカラー'], 0, 256);
+    var paramAvoid = getParamString(['Avoid', '回避']);
+    var paramAvoidColor = getParamArrayNumber(['AvoidColor', '回避カラー'], 0, 256);
+    var paramMiss = getParamString(['Miss', 'ミス']);
+    var paramMissColor = getParamArrayNumber(['MissColor', 'ミスカラー'], 0, 256);
+    var paramBuff = getParamString(['Buff', 'バフ']);
+    var paramBuffColor = getParamArrayNumber(['BuffColor', 'バフカラー'], 0, 256);
+    var paramDebuff = getParamString(['Debuff', 'デバフ']);
+    var paramDebuffColor = getParamArrayNumber(['DebuffColor', 'デバフカラー'], 0, 256);
+    var paramInvalid = getParamString(['Invalid', '無効']);
+    var paramParamName = getParamArrayString(['ParamName', 'パラメータ名称']);
+    var paramInvalidColor = getParamArrayNumber(['InvalidColor', '無効カラー'], 0, 256);
+    var paramGuard = getParamString(['Guard', 'ガード']);
+    var paramGuardColor = getParamArrayNumber(['GuardColor', 'ガードカラー'], 0, 256);
+    var paramReflection = getParamString(['Reflection', '魔法反射']);
+    var paramReflectionColor = getParamArrayNumber(['ReflectionColor', '魔法反射カラー'], 0, 256);
+    var paramCounter = getParamString(['Counter', '反撃']);
+    var paramCounterColor = getParamArrayNumber(['CounterColor', '反撃カラー'], 0, 256);
+    var paramSubstitute = getParamString(['Substitute', '身代わり']);
+    var paramSubstituteTarget = getParamBoolean(['SubstituteTarget', '身代わり対象にポップアップ']);
+    var paramSubstituteColor = getParamArrayNumber(['SubstituteColor', '身代わりカラー'], 0, 256);
+    var paramWeakness = getParamString(['Weakness', '弱点']);
+    var paramWeaknessColor = getParamArrayNumber(['WeaknessColor', '弱点カラー'], 0, 256);
+    var paramWeaknessLine = getParamNumber(['WeaknessLine', '弱点閾値']);
+    var paramResistance = getParamString(['Resistance', '耐性']);
+    var paramResistanceLine = getParamNumber(['ResistanceLine', '耐性閾値']);
+    var paramResistanceColor = getParamArrayNumber(['ResistanceColor', '耐性カラー'], 0, 256);
+    var paramActorDamageColor = getParamArrayNumber(['ActorDamageColor', '味方ダメージカラー'], 0, 256);
+    var paramEnemyDamageColor = getParamArrayNumber(['EnemyDamageColor', '敵ダメージカラー'], 0, 256);
+    var paramFontSize = getParamNumber(['FontSize', 'フォントサイズ'], 16, 128);
+    var paramMaxWidth = getParamNumber(['MaxWidth', 'メッセージ最大幅'], 1);
+    var paramFlashDuration = getParamNumber(['FlashDuration', 'フラッシュ時間'], 1);
+    var paramOffsetX = getParamNumber(['OffsetX', 'X座標補正']);
+    var paramOffsetY = getParamNumber(['OffsetY', 'Y座標補正']);
+    var paramUsingPicture = getParamBoolean(['UsingPicture', '画像使用']);
+    var paramUsingItalic = getParamBoolean(['UsingItalic', 'イタリック表示']);
+    var paramUsingOutline = getParamBoolean(['UsingOutline', '縁取り表示']);
+    var paramOutlineColor = getParamString(['OutlineColor', '縁取りカラー']);
+    var paramMessageWait = getParamNumber(['MessageWait', 'メッセージウェイト']);
+
+    //=============================================================================
+    // Game_Interpreter
+    //  プラグインコマンドを追加定義します。
+    //=============================================================================
+    var _Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
+    Game_Interpreter.prototype.pluginCommand = function (command, args) {
+        _Game_Interpreter_pluginCommand.apply(this, arguments);
+        if (!command.match(new RegExp('^' + metaTagPrefix))) return;
+        this.pluginCommandBattleEffectPopup(command.replace(metaTagPrefix, ''), args);
+    };
+
+    Game_Interpreter.prototype.pluginCommandBattleEffectPopup = function (command, args) {
+        switch (getCommandName(command)) {
+            case '使用者ポップアップ':
+            case '_USER_POPUP':
+                BattleManager._subject.startMessagePopup(getArgString(args[0]), getArgArrayNumber(args[1], 0, 256));
+                break;
+            case '対象者ポップアップ':
+            case '_TARGET_POPUP':
+                var action = BattleManager._action;
+                var unit = action.isForOpponent() ? action.opponentsUnit() : action.friendsUnit();
+                var index = BattleManager._subject._lastTargetIndex;
+                var target = unit.members()[index];
+                if (target) {
+                    target.startMessagePopup(getArgString(args[0]), getArgArrayNumber(args[1], 0, 256));
+                } else {
+                    console.error('対象者ポップアップのターゲットが見付かりませんでした。index : ' + index);
+                    console.error(unit.members());
+                }
+                break;
+        }
+    };
+
+    //=============================================================================
+    // Game_Action
+    //  弱点によってポップアップを設定します。
+    //=============================================================================
+    var _Game_Action_apply = Game_Action.prototype.apply;
+    Game_Action.prototype.apply = function (target) {
+        this._elementResult = {};
+        _Game_Action_apply.apply(this, arguments);
+        if (this._elementResult.guard) {
+            target.appointMessagePopup(paramGuard, paramGuardColor);
+        }
+        if (this._elementResult.weakness) {
+            target.appointMessagePopup(paramWeakness, paramWeaknessColor);
+        }
+        if (this._elementResult.resist) {
+            target.appointMessagePopup(paramResistance, paramResistanceColor);
+        }
+        this._elementResult = null;
+    };
+
+    var _Game_Action_calcElementRate = Game_Action.prototype.calcElementRate;
+    Game_Action.prototype.calcElementRate = function (target) {
+        const result = _Game_Action_calcElementRate.apply(this, arguments);
+        if (this._elementResult) {
+            if (result === 0 || (this.isPhysical() && target.pdr === 0) || (this.isMagical() && target.mdr === 0)) {
+                this._elementResult.guard = true;
+            } else if (result >= paramWeaknessLine / 100) {
+                this._elementResult.weakness = true;
+            } else if (result <= paramResistanceLine / 100) {
+                this._elementResult.resist = true;
+            }
+        }
+        return result;
+    };
+
+    //=============================================================================
+    // Game_Battler
+    //  ポップアップメッセージのリクエストに応答します。
+    //=============================================================================
+    Game_Battler.prototype.clearMessagePopup = function () {
+        this._messagePopup = false;
+    };
+
+    Game_Battler.prototype.isMessagePopupRequested = function () {
+        return this._messagePopup;
+    };
+
+    Game_Battler.prototype.startMessagePopup = function (message, flashColor) {
+        if (message) {
+            this._messagePopup = true;
+            this._message = message;
+            this._flashColor = flashColor;
+        }
+    };
+
+    Game_Battler.prototype.startAppointMessagePopup = function () {
+        this.startMessagePopup(this._appointMessage, this._appointFlashColor);
+        this._appointMessage = '';
+        this._appointFlashColor = null;
+    };
+
+    Game_Battler.prototype.appointMessagePopup = function (message, flashColor) {
+        this._appointMessage = message;
+        this._appointFlashColor = flashColor;
+    };
+
+    Game_Battler.prototype.getMessagePopupText = function () {
+        return this._message;
+    };
+
+    Game_Battler.prototype.hasAppointMessage = function () {
+        return !!this._appointMessage;
+    };
+
+    Game_Battler.prototype.getMessagePopupFlashColor = function () {
+        return this._flashColor;
+    };
+
+    var _Game_Battler_stateRate = Game_Battler.prototype.stateRate;
+    Game_Battler.prototype.stateRate = function (stateId) {
+        var rate = _Game_Battler_stateRate.apply(this, arguments);
+        if (rate === 0) {
+            this.result().guarded = true;
+        }
+        return rate;
+    };
+
+    //=============================================================================
+    // Game_ActionResult
+    //  行動が無効だったかどうかを返します。
+    //=============================================================================
+    var _Game_ActionResult_clear = Game_ActionResult.prototype.clear;
+    Game_ActionResult.prototype.clear = function () {
+        _Game_ActionResult_clear.apply(this, arguments);
+        this.guarded = false;
+    };
+
+    Game_ActionResult.prototype.isInvalid = function () {
+        return !this.success && !this.missed && !this.evaded && !$gameTemp.isCommonEventReserved();
+    };
+
+    Game_ActionResult.prototype.isGuarded = function () {
+        return this.guarded && this.isInvalid();
+    };
+
+    //=============================================================================
+    // Window_BattleLog
+    //  ポップアップメッセージをリクエストします。
+    //=============================================================================
+    Window_BattleLog.prototype.popupMessage = function (target, message, flashColor) {
+        target.startMessagePopup(message, flashColor);
+    };
+
+    Window_BattleLog.prototype.popupAppointMessage = function (target) {
+        target.startAppointMessagePopup();
+    };
+
+    var _Window_BattleLog_displayDamage = Window_BattleLog.prototype.displayDamage;
+    Window_BattleLog.prototype.displayDamage = function (target) {
+        _Window_BattleLog_displayDamage.apply(this, arguments);
+        if (target.result().isGuarded()) {
+            this.pushPopupMessage(target, paramGuard, paramGuardColor);
+        } else if (target.result().isInvalid()) {
+            this.pushPopupMessage(target, paramInvalid, paramInvalidColor);
+        }
+        if (target.hasAppointMessage()) {
+            this.pushPopupAppointMessage(target);
+        }
+    };
+
+    var _Window_BattleLog_displayCritical = Window_BattleLog.prototype.displayCritical;
+    Window_BattleLog.prototype.displayCritical = function (target) {
+        _Window_BattleLog_displayCritical.apply(this, arguments);
+        if (target.result().critical) {
+            this.pushPopupMessage(target, paramCritical, paramCriticalColor);
+        }
+    };
+
+    var _Window_BattleLog_displayMiss = Window_BattleLog.prototype.displayMiss;
+    Window_BattleLog.prototype.displayMiss = function (target) {
+        _Window_BattleLog_displayMiss.apply(this, arguments);
+        this.popupMiss(target);
+    };
+
+    Window_BattleLog.prototype.popupMiss = function (target) {
+        this.pushPopupMessage(target, paramMiss, paramMissColor);
+    };
+
+    var _Window_BattleLog_displayEvasion = Window_BattleLog.prototype.displayEvasion;
+    Window_BattleLog.prototype.displayEvasion = function (target) {
+        _Window_BattleLog_displayEvasion.apply(this, arguments);
+        this.popupEvasion(target);
+    };
+
+    Window_BattleLog.prototype.popupEvasion = function (target) {
+        this.pushPopupMessage(target, paramAvoid, paramAvoidColor);
+    };
+
+    var _Window_BattleLog_displayCounter = Window_BattleLog.prototype.displayCounter;
+    Window_BattleLog.prototype.displayCounter = function (target) {
+        _Window_BattleLog_displayCounter.apply(this, arguments);
+        this.popupCounter(target);
+    };
+
+    var _Window_BattleLog_displaySubstitute = Window_BattleLog.prototype.displaySubstitute;
+    Window_BattleLog.prototype.displaySubstitute = function (substitute, target) {
+        _Window_BattleLog_displaySubstitute.apply(this, arguments);
+        this.pushPopupMessage(paramSubstituteTarget ? target : substitute, paramSubstitute, paramSubstituteColor);
+    };
+
+    Window_BattleLog.prototype.popupCounter = function (target) {
+        this.pushPopupMessage(target, paramCounter, paramCounterColor);
+    };
+
+    var _Window_BattleLog_displayReflection = Window_BattleLog.prototype.displayReflection;
+    Window_BattleLog.prototype.displayReflection = function (target) {
+        _Window_BattleLog_displayReflection.apply(this, arguments);
+        this.popupReflection(target);
+    };
+
+    Window_BattleLog.prototype.popupReflection = function (target) {
+        this.pushPopupMessage(target, paramReflection, paramReflectionColor);
+    };
+
+    var _Window_BattleLog_displayAddedStates = Window_BattleLog.prototype.displayAddedStates;
+    Window_BattleLog.prototype.displayAddedStates = function (target) {
+        _Window_BattleLog_displayAddedStates.apply(this, arguments);
+        target.result().addedStateObjects().forEach(function (state) {
+            var message = getMetaValues(state, ['Message', 'メッセージ']);
+            if (message) {
+                var flash = getMetaValues(state, ['FlashColor', 'カラー']);
+                if (flash) flash = getArgArrayNumber(flash, 0, 256);
+                this.pushPopupMessage(target, getArgString(message), flash);
+            }
+        }, this);
+    };
+
+    var _Window_BattleLog_displayChangedBuffs = Window_BattleLog.prototype.displayChangedBuffs;
+    Window_BattleLog.prototype.displayChangedBuffs = function (target) {
+        _Window_BattleLog_displayChangedBuffs.apply(this, arguments);
+        target.result().addedBuffs.forEach(function (paramId) {
+            var message = paramBuff.format(paramParamName[paramId] || TextManager.param(paramId));
+            if (message) {
+                this.pushPopupMessage(target, getArgString(message), paramBuffColor);
+            }
+        }, this);
+        target.result().addedDebuffs.forEach(function (paramId) {
+            var message = paramDebuff.format(paramParamName[paramId] || TextManager.param(paramId));
+            if (message) {
+                this.pushPopupMessage(target, getArgString(message), paramDebuffColor);
+            }
+        }, this);
+    };
+
+    Window_BattleLog.prototype.pushPopupMessage = function (target, message, flashColor) {
+        if (this.hasPopupMessage() || target.isMessagePopupRequested()) {
+            this.push('waitForPopup');
+            this.push('popupMessage', target, message, flashColor);
+        } else {
+            this.popupMessage(target, message, flashColor);
+        }
+    };
+
+    Window_BattleLog.prototype.pushPopupAppointMessage = function (target) {
+        if (this.hasPopupMessage() || target.isMessagePopupRequested()) {
+            this.push('waitForPopup');
+            this.push('popupAppointMessage', target);
+        } else {
+            this.popupAppointMessage(target);
+        }
+    };
+
+    Window_BattleLog.prototype.hasPopupMessage = function () {
+        return this._methods.some(function (method) {
+            return method.name === 'popupMessage' || method.name === 'popupAppointMessage';
+        });
+    };
+
+    Window_BattleLog.prototype.waitForPopup = function () {
+        this._waitCount = paramMessageWait || 0;
+    };
+
+    //=============================================================================
+    // Sprite_Battler
+    //  ポップアップメッセージを作成します。
+    //=============================================================================
+    var _Sprite_Battler_updateDamagePopup = Sprite_Battler.prototype.updateDamagePopup;
+    Sprite_Battler.prototype.updateDamagePopup = function () {
+        this.setupMessagePopup();
+        _Sprite_Battler_updateDamagePopup.apply(this, arguments);
+    };
+
+    var _Sprite_Battler_pushDamageSprite = Sprite_Battler.prototype.pushDamageSprite;
+    Sprite_Battler.prototype.pushDamageSprite = function (sprite) {
+        var damage = this._damages;
+        this._damages = this._damages.filter(function (sprite) {
+            return !sprite.isMessage();
+        });
+        _Sprite_Battler_pushDamageSprite.apply(this, arguments);
+        damage.push(sprite);
+        this._damages = damage;
+    };
+
+    Sprite_Battler.prototype.setupMessagePopup = function () {
+        if (this._battler.isMessagePopupRequested()) {
+            // Resolve conflict for MOG_BattleHud.js
+            if (this._battler.isSpriteVisible() || this._sprite_face) {
+                var sprite = new Sprite_PopupMessage();
+                sprite.x = this.x + this.messageOffsetX();
+                sprite.y = this.y + this.messageOffsetY();
+                sprite.setup(this._battler);
+                if (!sprite.z) {
+                    this.setZPositionOfPopup(sprite);
+                }
+                this._damages.push(sprite);
+                // for BigEnemy.js
+                if (this._enemy && this._enemy.isBigEnemy && this._enemy.isBigEnemy()) {
+                    this.adjustDamagePopup();
+                }
+                // for BigEnemy.js
+                this.parent.addChild(sprite);
+            }
+            this._battler.clearMessagePopup();
+        }
+    };
+
+    Sprite_Battler.prototype.setZPositionOfPopup = function (sprite) {
+        if (this.z > 0) sprite.z = this.z + 10;
+        if (this._mainSprite && this._mainSprite.z > 0) sprite.z = this._mainSprite.z + 10;
+    };
+
+    Sprite_Battler.prototype.messageOffsetX = function () {
+        return paramOffsetX;
+    };
+
+    Sprite_Battler.prototype.messageOffsetY = function () {
+        return paramOffsetY;
+    };
+
+    //=============================================================================
+    // Sprite_Damage
+    //  回避メッセージが有効な場合のミス表示を抑制します。
+    //=============================================================================
+    var _Sprite_Damage_setup = Sprite_Damage.prototype.setup;
+    Sprite_Damage.prototype.setup = function (target) {
+        // for YEP_BattleEngineCore.js
+        var result = target.shiftDamagePopup ? target.shiftDamagePopup() : target.result();
+        if ((!result.evaded || !paramAvoid) && (!result.missed || !paramMiss)) {
+            if (target.shiftDamagePopup) {
+                target._damagePopup.unshift(result);
+            }
+            _Sprite_Damage_setup.apply(this, arguments);
+        }
+        this.setupFlash(result, target);
+    };
+
+    Sprite_Damage.prototype.setupFlash = function (result, target) {
+        if (!result.missed && !result.evaded && result.hpAffected) {
+            var color = target instanceof Game_Actor ? paramActorDamageColor : paramEnemyDamageColor;
+            if (color && color.length > 0) this.setupFlashEffect(color);
+        }
+    };
+
+    Sprite_Damage.prototype.setupFlashEffect = function (flashColor, duration) {
+        this._flashColor = flashColor.clone();
+        this._flashDuration = duration || paramFlashDuration;
+    };
+
+    Sprite_Damage.prototype.isMessage = function () {
+        return false;
+    };
+
+    //=============================================================================
+    // Sprite_PopupMessage
+    //  ポップアップメッセージを表示するスプライトです。
+    //=============================================================================
+    function Sprite_PopupMessage() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Sprite_PopupMessage.prototype = Object.create(Sprite_Damage.prototype);
+    Sprite_PopupMessage.prototype.constructor = Sprite_PopupMessage;
+
+    Sprite_PopupMessage.prototype.setup = function (target) {
+        var text = target.getMessagePopupText();
+        var bitmap = paramUsingPicture ? this.setupStaticText(text) : this.setupDynamicText(text);
+        var sprite = this.createChildSprite();
+        sprite.bitmap = bitmap;
+        sprite.dy = 0;
+        var flashColor = target.getMessagePopupFlashColor();
+        if (flashColor) {
+            this.setupFlashEffect(flashColor);
+        }
+        // Resolve conflict for KMS_SomStyleDamage.js
+        if (this.setupSomStyleDamageParameter) {
+            this.setupSomStyleDamageParameter();
+        }
+    };
+
+    Sprite_PopupMessage.prototype.setupDynamicText = function (text) {
+        var bitmap = new Bitmap(paramMaxWidth, paramFontSize + 8);
+        bitmap.fontSize = paramFontSize;
+        if (paramUsingItalic) {
+            bitmap.fontItalic = true;
+        }
+        if (paramUsingOutline) {
+            bitmap.outlineWidth = Math.floor(bitmap.fontSize / 6);
+            bitmap.outlineColor = paramOutlineColor || 'gray';
+        }
+        bitmap.drawText(text, 0, 0, bitmap.width, bitmap.height, 'center');
+        return bitmap;
+    };
+
+    Sprite_PopupMessage.prototype.setupStaticText = function (textPicture) {
+        return ImageManager.loadPicture(textPicture, 0);
+    };
+
+    Sprite_PopupMessage.prototype.isMessage = function () {
+        return true;
+    };
+
+    // for YEP_X_ActSeqPack1.js
+    var _BattleManager_actionAddState = BattleManager.actionAddState;
+    BattleManager.actionAddState = function (actionName, actionArgs) {
+        var targets = this.makeActionTargets(actionArgs[0]);
+        if (targets) {
+            targets.forEach(function (target) {
+                target.result().used = true;
+                target.result().success = true;
+            });
+        }
+        return _BattleManager_actionAddState.apply(this, arguments);
+    };
+})();
