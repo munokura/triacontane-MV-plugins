@@ -1,3 +1,35 @@
+//=============================================================================
+// BattlerGraphicExtend.js
+// ----------------------------------------------------------------------------
+// (C)2016 Triacontane
+// This software is released under the MIT License.
+// http://opensource.org/licenses/mit-license.php
+// ----------------------------------------------------------------------------
+// Version
+// 1.4.3 2024/01/28 一度もパーティに加わったことのないアクターに対する名前入力ができない不具合を修正
+// 1.4.2 2020/08/29 RestrictionTargetSkill.jsと組み合わせたときの軽量化対策
+// 1.4.1 2019/09/16 1.4.0の機能追加により発生した問題を修正
+// 1.4.0 2019/09/16 バトラーグラフィックを反転できる機能を追加
+// 1.3.0 2019/06/12 浮遊設定で高度を「0」に設定できるようになりました。
+// 1.2.4 2018/06/17 YEP_X_AnimatedSVEnemies.jsとの併用時、敵キャラに対する本プラグインのエフェクトの一部が反映されない競合を修正
+// 1.2.3 2018/05/27 YEP_X_AnimatedSVEnemies.jsおよびBattleMotion.jsとの併用時、SVエネミーの反転が行われない問題を修正
+// 1.2.2 2018/05/20 YEP_X_ActSeqPack2.jsとの併用時、当該プラグインで透明度が変更された場合は、こちらの透明度変更機能を無効化するよう変更
+// 1.2.1 2018/05/20 YEP_X_ActSeqPack2.jsとの併用時、当該プラグインのバトラー反転機能が正常に機能しない競合を解消
+// 1.2.0 2016/10/02 メモ欄の適用範囲をステートから特徴を有するデータベース項目に拡張しました。
+// 1.1.3 2016/08/27 YEP_X_ActSeqPack2.jsとの競合を解消
+// 1.1.2 2016/08/27 消滅エフェクトが機能しない競合を抑えるために条件を一部変更
+// 1.1.1 2016/08/07 YEP_AutoPassiveStates.jsとの競合を解消
+// 1.1.0 2016/07/01 バトラーを指定した色で点滅させる機能を追加
+// 1.0.2 2016/06/29 YEP_X_AnimatedSVEnemies.jsとの間で発生していた競合を解消
+// 1.0.1 2016/06/17 敵を倒したときにグラフィックが消滅しない不具合を修正
+//                  武器グラフィックにも不透明度と合成方法を適用するよう修正
+// 1.0.0 2016/06/17 初版
+// ----------------------------------------------------------------------------
+// [Blog]   : https://triacontane.blogspot.jp/
+// [Twitter]: https://twitter.com/triacontane/
+// [GitHub] : https://github.com/triacontane/
+//=============================================================================
+
 /*:
 @url https://triacontane.blogspot.com/
 @plugindesc Butler Graphic Display Extension Plugin
@@ -19,7 +51,7 @@ This expands the representation of battler images during battle.
 A variety of effects are possible, such as floating in the air, changing
 color tone and size.
 
-Enter the following in the note field of the feature database.
+Enter the following in the Note field of the feature database.
 
 Makes the battler float. This setting is only valid for actors.
 <BGEAltitude: n> n: Altitude (pixels)
@@ -118,38 +150,6 @@ This plugin is now yours.
  についても制限はありません。
  このプラグインはもうあなたのものです。
 */
-
-//=============================================================================
-// BattlerGraphicExtend.js
-// ----------------------------------------------------------------------------
-// (C)2016 Triacontane
-// This software is released under the MIT License.
-// http://opensource.org/licenses/mit-license.php
-// ----------------------------------------------------------------------------
-// Version
-// 1.4.3 2024/01/28 一度もパーティに加わったことのないアクターに対する名前入力ができない不具合を修正
-// 1.4.2 2020/08/29 RestrictionTargetSkill.jsと組み合わせたときの軽量化対策
-// 1.4.1 2019/09/16 1.4.0の機能追加により発生した問題を修正
-// 1.4.0 2019/09/16 バトラーグラフィックを反転できる機能を追加
-// 1.3.0 2019/06/12 浮遊設定で高度を「0」に設定できるようになりました。
-// 1.2.4 2018/06/17 YEP_X_AnimatedSVEnemies.jsとの併用時、敵キャラに対する本プラグインのエフェクトの一部が反映されない競合を修正
-// 1.2.3 2018/05/27 YEP_X_AnimatedSVEnemies.jsおよびBattleMotion.jsとの併用時、SVエネミーの反転が行われない問題を修正
-// 1.2.2 2018/05/20 YEP_X_ActSeqPack2.jsとの併用時、当該プラグインで透明度が変更された場合は、こちらの透明度変更機能を無効化するよう変更
-// 1.2.1 2018/05/20 YEP_X_ActSeqPack2.jsとの併用時、当該プラグインのバトラー反転機能が正常に機能しない競合を解消
-// 1.2.0 2016/10/02 メモ欄の適用範囲をステートから特徴を有するデータベース項目に拡張しました。
-// 1.1.3 2016/08/27 YEP_X_ActSeqPack2.jsとの競合を解消
-// 1.1.2 2016/08/27 消滅エフェクトが機能しない競合を抑えるために条件を一部変更
-// 1.1.1 2016/08/07 YEP_AutoPassiveStates.jsとの競合を解消
-// 1.1.0 2016/07/01 バトラーを指定した色で点滅させる機能を追加
-// 1.0.2 2016/06/29 YEP_X_AnimatedSVEnemies.jsとの間で発生していた競合を解消
-// 1.0.1 2016/06/17 敵を倒したときにグラフィックが消滅しない不具合を修正
-//                  武器グラフィックにも不透明度と合成方法を適用するよう修正
-// 1.0.0 2016/06/17 初版
-// ----------------------------------------------------------------------------
-// [Blog]   : https://triacontane.blogspot.jp/
-// [Twitter]: https://twitter.com/triacontane/
-// [GitHub] : https://github.com/triacontane/
-//=============================================================================
 
 (function () {
     'use strict';

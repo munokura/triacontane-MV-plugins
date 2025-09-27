@@ -1,3 +1,19 @@
+/*=============================================================================
+ BattleLogWithSe.js
+----------------------------------------------------------------------------
+ (C)2018 Triacontane
+ This software is released under the MIT License.
+ http://opensource.org/licenses/mit-license.php
+----------------------------------------------------------------------------
+ Version
+ 1.1.0 2018/08/14 効果音のインデックスに制御文字が使えるよう修正
+ 1.0.0 2018/08/14 初版
+----------------------------------------------------------------------------
+ [Blog]   : https://triacontane.blogspot.jp/
+ [Twitter]: https://twitter.com/triacontane/
+ [GitHub] : https://github.com/triacontane/
+=============================================================================*/
+
 /*:
 @url https://triacontane.blogspot.com/
 @plugindesc Battlelog SE playback plugin
@@ -140,22 +156,6 @@ This plugin is now yours.
 @min -100
 @max 100
 */
-
-/*=============================================================================
- BattleLogWithSe.js
-----------------------------------------------------------------------------
- (C)2018 Triacontane
- This software is released under the MIT License.
- http://opensource.org/licenses/mit-license.php
-----------------------------------------------------------------------------
- Version
- 1.1.0 2018/08/14 効果音のインデックスに制御文字が使えるよう修正
- 1.0.0 2018/08/14 初版
-----------------------------------------------------------------------------
- [Blog]   : https://triacontane.blogspot.jp/
- [Twitter]: https://twitter.com/triacontane/
- [GitHub] : https://github.com/triacontane/
-=============================================================================*/
 
 (function () {
     'use strict';
