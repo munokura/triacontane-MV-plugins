@@ -53,7 +53,7 @@ https://triacontane.blogspot.com
 AutomaticState.js
 
 Grant the specified state while the conditions are met.
-Enter the conditions in the state's note field using the following format:
+Enter the conditions in the state's Note field using the following format:
 
 Note field format (control characters are allowed in the state ID)
 

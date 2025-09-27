@@ -39,7 +39,7 @@ This plugin enables giant monsters to be displayed in front view.
 Specifically, the bottom of the image will be forcibly aligned with the
 bottom of the screen.
 
-Please set the enemy character's note field as follows:
+Please set the enemy character's Note field as follows:
 <BEValid>
 
 This plugin does not have any plugin commands.

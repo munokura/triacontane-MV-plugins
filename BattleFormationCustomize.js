@@ -34,7 +34,7 @@ BattleFormationCustomize.js
 
 Adjusts the formation's position in battle.
 
-Specify the following in the characteristic note field.
+Specify the following in the characteristic Note field.
 
 <BFC_Pos:10,20> # Set the formation's coordinates to [10] in X and
 [20] in Y.

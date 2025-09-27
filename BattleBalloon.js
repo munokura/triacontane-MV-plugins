@@ -48,7 +48,7 @@ reflection, or substitution.
 
 3. Automatically activates upon skill execution
 Automatically activates when a skill or item is used.
-Please enter the following in the note field.
+Please enter the following in the Note field.
 
 <BB_BalloonInput: 5>
  # Displays a speech bubble [5] when a skill is confirmed

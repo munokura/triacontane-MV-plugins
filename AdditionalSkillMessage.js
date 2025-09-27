@@ -31,7 +31,7 @@ https://triacontane.blogspot.com
 -----
 
 You can add a third or subsequent line to the usual two-line skill
-message. Specify the following in the skill's note field.
+message. Specify the following in the skill's Note field.
 
 <ASM_Message3:aaa> # Add the third line of message [aaa]
 <ASM_Message4:bbb> # Add the fourth line of message [bbb]

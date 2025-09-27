@@ -37,7 +37,7 @@ During battle, you can auto-revive a set number of times.
 The number of times is determined once, immediately after the start of
 battle.
 It is not recalculated during battle.
-Enter the following in the note field of the feature plugin.
+Enter the following in the Note field of the feature plugin.
 
 <AR_AutoRaise:3> # Auto-revives up to three times when incapacitated.
 <AR_RaiseHpRate:50> # HP is restored to 50% upon auto-revive.
@@ -45,7 +45,7 @@ Enter the following in the note field of the feature plugin.
 <AR_RaiseProb:50> # The resurrection activation rate is 50%.
 
 If you want to apply this during battle using a skill, etc.,
-set the following note field in the state.
+set the following Note field in the state.
 <AR_TempAutoRaise> # Automatically revives when incapacitated.
 
 This plugin does not have any plugin commands.
