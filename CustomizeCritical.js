@@ -58,8 +58,8 @@ Example: <CCProbChange:\v[1]>
 - Apply a special combat animation when a critical hit occurs.
 <CCAnimation: Battle Animation ID>
 
-Enter the following in the actor or enemy character's Note field.
-However, enemy character animations will not be displayed in front view.
+Enter the following in the actor or Enemies's Note field.
+However, Enemies animations will not be displayed in front view.
 
 - A battle animation for the effects will be displayed before execution.
 <CCEffect: Battle Animation ID>

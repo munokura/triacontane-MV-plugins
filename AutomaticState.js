@@ -98,8 +98,8 @@ Example: <ASアクター: 1, 2, 3>
 <AS敵キャラ: (Enemy ID)>
 Sets the target of automatic state assignment to the specified enemy
 characters only.
-If no ID is specified, it will apply to all enemy characters.
-To specify multiple enemy characters, separate the numbers with a comma.
+If no ID is specified, it will apply to all Enemies.
+To specify multiple Enemies, separate the numbers with a comma.
 Example: <AS敵キャラ: 1, 2, 3>
 
 If multiple conditions are specified, the state will only be assigned if

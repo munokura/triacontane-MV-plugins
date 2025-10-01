@@ -277,7 +277,7 @@ This plugin is now yours.
 @default 0,0,0,0
 
 @param EnemyDamageColor
-@desc This is the flash color of enemy character damage.
+@desc This is the flash color of Enemies damage.
 @default 0,0,0,0
 
 @param FontSize

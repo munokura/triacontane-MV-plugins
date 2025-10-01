@@ -121,7 +121,7 @@ effects only.
 <DAEAbsolutePos: [X Coordinate], [Y Coordinate]>
 The destination will be the specified coordinates on the screen,
 regardless of the target.
-When used by an enemy character, the X coordinate will be inverted.
+When used by an Enemies, the X coordinate will be inverted.
 
 <DAERelativePos: [X Coordinate], [Y Coordinate]>
 The destination will be offset from the front of the target by the
@@ -191,7 +191,7 @@ This plugin is now yours.
 @default true
 
 @param ValidEnemy
-@desc Apply direct attack effects to enemy characters. If you turn it off, it will not be applied.
+@desc Apply direct attack effects to Enemies. If you turn it off, it will not be applied.
 @type boolean
 @default true
 
@@ -211,7 +211,7 @@ This plugin is now yours.
 @default 0
 
 @param EnemyAfterimageSwitch
-@desc The afterimage will be displayed on the enemy character only when the switch with the specified number is ON. If not specified, it will always be displayed.
+@desc The afterimage will be displayed on the Enemies only when the switch with the specified number is ON. If not specified, it will always be displayed.
 @type switch
 @default 0
 */

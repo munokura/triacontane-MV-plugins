@@ -51,8 +51,8 @@ The following information can be recorded for each actor:
 - Total number of times all skills have been used
 - Number of times each item has been used
 - Total number of times all items have been used
-- Number of times each enemy character has been defeated
-- Total number of times all enemy characters have been defeated
+- Number of times each Enemies has been defeated
+- Total number of times all Enemies have been defeated
 - Total damage dealt
 - Maximum damage dealt
 - Maximum damage dealt (per action)
@@ -110,13 +110,13 @@ Replace $gameActors.actor(n) with a (the performer) or b (the target).
 a.getSkillUseCounter(5)
  # Number of times the performer has used skill[5]
 b.getKillEnemyCounter(6)
- # Number of times the target has killed enemy characters[6]
+ # Number of times the target has killed Enemies[6]
 
 - To get the total value for all actors,
 Replace $gameActors.actor(n) with $gameActors and execute.
 (Example)
 $gameActors.getKillEnemyCounter(4);
- # Total number of enemy characters [4] killed by all actors
+ # Total number of Enemies [4] killed by all actors
 
 - To obtain party-level statistics
 $gameParty.gainGoldSum;

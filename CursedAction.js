@@ -44,7 +44,7 @@ Enter the following in the Note field of the characteristic database (※1).
  # 50% chance of using the skill specified in Skill 1.
 <CurseCond1:s>
  # Skill 1's usage condition becomes the evaluation result of script [s].
-*1 Applies to actors, jobs, weapons/armor, states, and enemy characters.
+*1 Applies to actors, jobs, weapons/armor, states, and Enemies.
 
 To specify multiple actions simultaneously, specify them as follows:
 <CurseSkill2:21>

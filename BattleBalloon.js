@@ -32,11 +32,11 @@ https://triacontane.blogspot.com
 
 You can display speech bubbles (balloons) at various times during battle.
 You can also adjust the speech bubble speed and wait time.
-They can be displayed on actors and enemy characters. They can be
+They can be displayed on actors and Enemies. They can be
 displayed primarily at the following times:
 
 1. Execute a plugin command during a battle event
-You can target actors, enemy characters, and skill users.
+You can target actors, Enemies, and skill users.
 To target skill users, display them during a common event after a skill is
 executed.
 You can also wait until the speech bubble display is complete.
@@ -52,10 +52,10 @@ Please enter the following in the Note field.
 
 <BB_BalloonInput: 5>
  # Displays a speech bubble [5] when a skill is confirmed
-  (enemy characters only) (※1)
+  (Enemies only) (※1)
 <BB_BalloonUsing: 6>
  # Displays a speech bubble [6] when a skill is confirmed
-※1 To be precise, this is the moment the enemy character AI confirms the
+※1 To be precise, this is the moment the Enemies AI confirms the
  skill.
 
 Plugin Command Details
@@ -65,7 +65,7 @@ Execute from the "Plugin Command" event command.
 BB_BALLOON_FOR_ACTOR 3 1 ON
  # Display balloon [1] with weighting for actor [3]
 BB_BALLOON_FOR_ENEMY 1 2
- # Display balloon [2] for enemy character with index [1]
+ # Display balloon [2] for Enemies with index [1]
 BB_BALLOON_FOR_USER 3 ON
  # Display balloon [3] for the skill user
 

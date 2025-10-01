@@ -38,7 +38,7 @@ Place it below the plugin in the Plugin Manager.
 Distributed by: http://tm.lucky-duet.com/viewtopic.php?t=430
 
 Stores the current difficulty level as a variable/switch.
-This allows you to create enemy character skills that are only active on
+This allows you to create Enemies skills that are only active on
 specific difficulty levels, and by incorporating the difficulty variable
 into calculations, you can create skills whose power varies depending on
 the difficulty level.

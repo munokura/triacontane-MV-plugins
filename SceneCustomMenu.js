@@ -477,7 +477,7 @@ This plugin is now yours.
 @option $dataItems.filter(data => !!data); //Database items
 @option $dataWeapons.filter(data => !!data); //Database Weapons
 @option $dataArmors.filter(data => !!data); //Database Armor
-@option $dataEnemies.filter(data => !!data); //Enemy characters in the database
+@option $dataEnemies.filter(data => !!data); //Enemies in the database
 @option $dataTroops.filter(data => !!data); //Database Enemy Groups
 @option $dataStates.filter(data => !!data); //Database State
 @option $dataItems.concat($dataWeapons, $dataArmors).filter(data => !!data); //Items, weapons and armor
@@ -543,7 +543,7 @@ This plugin is now yours.
 @option this.drawActorMp(item, r.x, r.y, r.width); //Actor MP
 @option this.drawActorTp(item, r.x, r.y, r.width); //Actor's TP
 @option this.drawActorSimpleStatus(item, r.x, r.y, r.width); //Actor Status
-@option this.drawEnemy(r.x, r.y, 'center', 'bottom'); //Enemy character images
+@option this.drawEnemy(r.x, r.y, 'center', 'bottom'); //Enemies images
 @option this.drawParam(0, r.x, r.y, 'right'); //DB parameters (0:HP 1:MP...)
 @option this.drawItemName(item, r.x, r.y, r.width); //Item and skill names
 @option this.drawTextEx(`Text:${item.name}`, r.x, r.y, r.width); //Arbitrary text drawing (with control character conversion)

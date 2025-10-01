@@ -41,7 +41,7 @@ The control character `\V[n]` is available.
 
 You can also replace the face graphic with any enemy image.
 Enter the following in the actor's database note field:
-<face_enemy_id: (ID from the `Enemy Character` database)>
+<face_enemy_id: (ID from the `Enemies` database)>
 The control character `\V[n]` is available.
 
 Pictures larger than the face graphic will be automatically resized to the
@@ -91,7 +91,7 @@ This plugin is now yours.
 @default OFF
 
 @param HideWhenSelectEnemy
-@desc Hide graphics while selecting enemy characters.
+@desc Hide graphics while selecting Enemies.
 @default OFF
 
 @param ShowWhenSelectActor
