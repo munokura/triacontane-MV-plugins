@@ -60,8 +60,8 @@ TemplateEvent.js[Template Event Plugin]
 
 You can template commonly used events.
 Please define the template event in the map prepared exclusively.
-Just by writing a predetermined description in the note of the actual event,
-It can be replaced dynamically.
+Just by writing a predetermined description in the note of the actual
+event, It can be replaced dynamically.
 
 You can also call up the source event from the template event.
 It is effective when you want to do some unique processing,
@@ -71,7 +71,8 @@ in the template event,
 We describe only the unique part such as item acquisition and
 location destination designation in the original event.
 
-It also provides a function to call an arbitrary map event like a common event.
+It also provides a function to call an arbitrary map event like a common
+event.
 Events to be called can be specified by ID and event name.
 
 Procedure
@@ -79,9 +80,15 @@ Procedure
 
 2.Write a Note field of the event you want to replace
 with the template event. Both ID and event name can be specified.
-<TE:1>   It is replaced with the event of ID [1] of the template map.
-<TE:aaa> It is replaced with the event of event name [aaa] of the template map.
-<TE:\v[1]> It is replaced with the event of ID of template map [value of variable [1]].
+<TE:1>
+It is replaced with the event of ID [1] of the template map.
+
+<TE:aaa>
+It is replaced with the event of event name [aaa] of the template map.
+
+<TE:\v[1]>
+It is replaced with the event of ID of template map [value of variable
+ [1]].
 
 In principle, all settings except initial placement will be replaced with
 template event settings If you specify graphics as an exception and when you
@@ -96,27 +103,117 @@ Trigger
 *1 Write it in the Note field of the unique event as follows.
 <TEOverRide>
 
+- Self Variable Function
+You can define self variables (variables specific to that event) for
+events.
+You can use these variables from plugin commands to display text or as
+event conditions.
+
+When used in "Text Display" mode
+You can display them using the control character "\sv[n](n:index)."
+
+When used in "Event Conditions" mode
+Start the event command on the target page with "Annotation"
+and specify conditions using the following format. Multiple conditions can
+be specified.
+
+\TE{condition}
+
+Conditions are written in JavaScript and control characters are allowed.
+Example:
+\TE{\sv[1] >= 3} # If self variable [1] is 3 or greater
+\TE{\sv[2] === \v[1]} # If self variable [2] is equal to variable [1]
+\TE{\sv[3] === 'AAA'} # If self variable [3] is equal to 'AAA'
+
+When used in scripts such as "conditional branching"
+The following script retrieves the self variable at the specified index.
+this.getSelfVariable(n)
+Example:
+this.getSelfVariable(1) !== 0 # If self variable [1] is not 0
+
 Plugin Command
+Execute from the event command "Plugin Command".
+(Separate parameters with a space.)
 
 TE_CALL_ORIGIN_EVENT [PageIndex]
- Call up the event processing of the replacement source. After processing is completed,
- it returns to the original processing. If you omit the page number, the running page
- number is applied as it is. It is effective only when described in the template event.
+ Call up the event processing of the replacement source.
+ After processing is completed, it returns to the original processing.
+ If you omit the page number, the running page number is applied as it is.
+ It is effective only when described in the template event.
 
  ex
  TE_CALL_ORIGIN_EVENT 1
 
 TE_CALL_MAP_EVENT [EventId] [PageIndex]
- Call up another event processing in the same map. After processing is completed,
- it returns to the original processing. If you specify an event ID other than a numeric value,
- it calls processing of an event that is treated as an event name and whose event name matches.
+ Call up another event processing in the same map.
+ After processing is completed, it returns to the original processing.
+ If you specify an event  ID other than a numeric value,
+ it calls processing of an event that is treated as an event name and
+ whose event name matches.
  It is valid even if it is described in the template event.
 
- ex1
+Example 1: Call the first page of events with ID [5].
  TE_CALL_MAP_EVENT 5 1
 
- ex2
+Example 2: Call the first page of events named [aaa].
  TE_CALL_MAP_EVENT aaa 1
+
+TE_SET_SELF_VARIABLE [Index] [Operation Type] [Operand]
+Operates on a self variable.
+Index: The index of the self variable to operate on. Specify a number
+greater than or equal to 1.
+Operation Type: The operation type. Specify one of the following:
+0: Assign
+1: Add
+2: Subtract
+3: Multiply
+4: Divide
+5: Remainder
+Operand: The setting value. Specify a number.
+*If you want to set a non-numeric value to a self variable, specify it in
+a script.
+
+Example 1: Assign the value [100] to the self variable with index [1].
+TE_SET_SELF_VARIABLE 1 0 100
+
+Example 2: Subtract the value [50] from the self variable with index [3].
+TE_SET_SELF_VARIABLE 3 2 50
+
+Example 3: Add the value [value of self variable [1]] to the self variable
+at index [5].
+TE_SET_SELF_VARIABLE 5 1 \sv[1]
+
+TE_SET_RANGE_SELF_VARIABLE [Start INDEX] [End INDEX] [Operation Type] [Operand]
+Operates self variables in bulk.
+
+The control character \sv[n] can be used in all plugin commands of this
+plugin.
+
+・Script (executed from event command scripts or variable operations)
+Gets the template event ID and name during a specific process call.
+this.character(0).getTemplateId();
+this.character(0).getTemplateName();
+
+Gets the self variable at the specified index.
+this.getSelfVariable(index);
+
+Sets a value to a self variable.
+This script can also be executed in "Set Movement Route."
+Setting formulaFlg to true evaluates the operand as a formula.
+this.controlSelfVariable(index, type, operand, formulaFlg);
+
+Sets values ​​to self variables in bulk.
+This script can also be executed using "Setting the Movement Route."
+this.controlSelfVariableRange(start, end, type, operand, formulaFlg);
+
+Controls the self-variable of an external event.
+$gameSelfSwitches.setVariableValue([Map ID, Event ID, INDEX], Set Value);
+
+Gets the self-variable of an external event.
+$gameSelfSwitches.getVariableValue([Map ID, Event ID, INDEX]);
+
+When using with SAN_MapGenerator.js
+Define this plugin below SAN_MapGenerator.js.
 
 Terms of Use:
 You may modify and redistribute this plugin without permission from the
@@ -247,7 +344,7 @@ IDおよびイベント名で呼び出すイベントを指定可能です。
 
 \TE{条件}
 
-条件はJavaScriptとしてで記述し、制御文字が使用可能です。
+条件はJavaScriptで記述し、制御文字が使用可能です。
 指定例：
 \TE{\sv[1] >= 3}      # セルフ変数[1]が3以上の場合
 \TE{\sv[2] === \v[1]} # セルフ変数[2]が変数[1]と等しい場合
@@ -305,7 +402,7 @@ TE_SET_SELF_VARIABLE [インデックス] [操作種別] [オペランド]
  例2:インデックス[3]のセルフ変数から値[50]を減算します。
  TE_SET_SELF_VARIABLE 3 2 50
 
- 例2:インデックス[5]のセルフ変数に値[セルフ変数[1]の値]を加算します。
+ 例3:インデックス[5]のセルフ変数に値[セルフ変数[1]の値]を加算します。
  TE_SET_SELF_VARIABLE 5 1 \sv[1]
 
 TEセルフ変数の一括操作 [開始INDEX] [終了INDEX] [操作種別] [オペランド]
