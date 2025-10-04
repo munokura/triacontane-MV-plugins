@@ -1,28 +1,27 @@
-//=============================================================================
-// IconDescription.js
-// ----------------------------------------------------------------------------
-// (C)2015-2018Triacontane
-// This software is released under the MIT License.
-// http://opensource.org/licenses/mit-license.php
-// ----------------------------------------------------------------------------
-// Version
-// 2.0.3 2024/12/26 ヘルプテキストやメッセージウィンドウにアイコンを表示したとき、切り替わり後も判定が残ってしまう問題を修正
-// 2.0.2 2024/05/12 メッセージウィンドウのアイコンをクリックしてもメッセージが閉じないよう修正
-// 2.0.1 2018/05/05 古いコアスクリプト用の設定を削除
-//                  バトル画面で除去されたステータスアイコンの説明が残ってしまう問題を修正
-// 2.0.0 2016/08/22 本体v1.3.0によりウィンドウ透過の実装が変更されたので対応
-// 1.0.1 2016/05/31 ウィンドウが重なったときに裏側のウィンドウのアイコンに反応する不具合を修正
-// 1.0.0 2016/03/16 初版
-// ----------------------------------------------------------------------------
-// [Blog]   : https://triacontane.blogspot.jp/
-// [Twitter]: https://twitter.com/triacontane/
-// [GitHub] : https://github.com/triacontane/
-//=============================================================================
-
+/*=============================================================================
+ IconDescription.js
+----------------------------------------------------------------------------
+ (C)2023 Triacontane
+ This software is released under the MIT License.
+ http://opensource.org/licenses/mit-license.php
+----------------------------------------------------------------------------
+ Version
+ 1.1.0 2025/09/30 マウスオーバーでアイコン説明を表示できる機能を追加
+                  画面左上にアイコン説明が誤って表示される場合がある問題を修正
+ 1.0.3 2024/12/26 ヘルプテキストやメッセージウィンドウにアイコンを表示したとき、切り替わり後も判定が残ってしまう問題を修正
+                  スクロールするウィンドウでアイコン判定の位置がずれる問題を修正
+ 1.0.2 2023/08/20 アイコンが一度表示され消去された後もクリック判定残ってしまう場合がある問題を修正
+ 1.0.1 2023/07/29 表示位置の微調整
+ 1.0.0 2023/07/29 初版
+----------------------------------------------------------------------------
+ [Blog]   : https://triacontane.blogspot.jp/
+ [Twitter]: https://twitter.com/triacontane/
+ [GitHub] : https://github.com/triacontane/
+=============================================================================*/
 /*:
-@url https://triacontane.blogspot.com/
 @plugindesc Icon Description Plugin
 @author Triacontane
+@url https://github.com/triacontane/RPGMakerMV/tree/mz_master/IconDescription.js
 @license MIT License
 
 @help
@@ -35,370 +34,469 @@ Original plugin by Triacontane.
 Please check the latest official version at:
 https://triacontane.blogspot.com
 -----
-Clicking or touching an icon displayed in the window
-will display the description you registered previously.
 
-Plugin Command Details
-Execute from the "Plugin Command" event command.
-(Separate parameters with a space.)
-
-ADD_ICON_DESC [Icon ID] [Description]
-
-Example:
-ADD_ICON_DESC 128 Shield icon.
-
-Adds a description to the specified icon ID.
-Control characters are allowed.
-
-Advanced settings are defined in the "User-Modifiable Area" in the source
-code.
-You can edit them as needed.
+You can display a popup with the description text for an icon.
+Click or hold down an icon to display the popup.
+Any icon displayed by default,
+such as a message window or status window, will be eligible for the popup,
+but icons displayed by other plugins may not be displayed.
 
 Terms of Use:
 You may modify and redistribute this plugin without permission from the
 author, and there are no restrictions on its use (commercial, 18+, etc.).
 This plugin is now yours.
 
-@param SeName
-@desc The file name of the sound effect that is played when help is displayed.
+@param list
+@text Icon Description List
+@desc A list of icon descriptions.
+@default []
+@type struct<Description>[]
+
+@param fontSize
+@text Font size
+@desc Font size for the icon description window. Specify 0 for the default size.
+@default 22
+@type number
+
+@param padding
+@text margin
+@desc Margins for the icon description window. Specify 0 for the default margins.
+@default 8
+@type number
+
+@param backOpacity
+@text background opacity
+@desc The background opacity of the icon description window. Specify 0 for the default opacity.
+@default 0
+@type number
+
+@param triggerType
+@text Trigger Type
+@desc This is a trigger to display the icon explanation window. Mouse over only works in a PC environment.
+@default click
+@type select
+@option click
+@value click
+@option Keep pressing
+@value press
+@option Mouseover
+@value hover
+
+@param se
+@text sound effects
+@desc This is the sound effect that plays when the icon description window is displayed.
+@type struct<SE>
+*/
+
+
+/*~struct~Description:
+@param iconIndex
+@text icon
+@desc The index of the icon to display the description for.
+@default 1
+@type icon
+
+@param caption
+@text Explanatory text
+@desc This is the description of the icon. Control characters can be used.
+@type multiline_string
+*/
+
+/*~struct~SE:
+@param name
+@text SE file name
+@desc The file name of the SE.
 @type file
-@default Cancel1
 @require 1
 @dir audio/se/
+
+@param volume
+@text SE Volume
+@desc This is the volume of the SE.
+@default 90
+@type number
+@min 0
+@max 100
+
+@param pitch
+@text SE Pitch
+@desc This is the SE pitch.
+@default 100
+@type number
+@min 50
+@max 150
+
+@param pan
+@text SE Balance
+@desc This is the left and right balance of the SE.
+@default 0
+@type number
+@min -100
+@max 100
 */
+
 
 /*:ja
 @plugindesc アイコン説明プラグイン
 @author トリアコンタン
+@url https://github.com/triacontane/RPGMakerMV/tree/mz_master/IconDescription.js
 
-@param 効果音
-@desc ヘルプが表示される際に演奏される効果音のファイル名です。
-@default Cancel1
-@require 1
-@dir audio/se/
-@type file
-
-@help ウィンドウ内に表示されたアイコンをクリック or タッチすると
-あらかじめ登録しておいた説明が表示されます。
-
-プラグインコマンド詳細
- イベントコマンド「プラグインコマンド」から実行。
- （パラメータの間は半角スペースで区切る）
-
-ADD_ICON_DESC [アイコンID] [説明文]
-アイコン説明追加 [アイコンID] [説明文]
-
-例：ADD_ICON_DESC 128 盾のアイコンです。
-
-指定したアイコンIDに説明文を追加します。制御文字が利用できます。
-
-高度な設定がソースコード中の「ユーザ書き換え領域」に定義されています。
-必要なら編集することが可能です。
+@help
+アイコンの説明テキストをポップアップ表示できます。
+アイコンをクリックするか、押し続けることでポップアップが表示されます。
+メッセージウィンドウやステータスウィンドウなど、デフォルトの方法で
+表示されたあらゆるアイコンがポップアップ対象になりますが
+他のプラグインによって表示されたアイコンは表示できるとは限りません。
 
 利用規約：
  作者に無断で改変、再配布が可能で、利用形態（商用、18禁利用等）
  についても制限はありません。
  このプラグインはもうあなたのものです。
+
+@param list
+@text アイコン説明リスト
+@desc アイコン説明のリストです。
+@default []
+@type struct<Description>[]
+
+@param fontSize
+@text フォントサイズ
+@desc アイコン説明ウィンドウのフォントサイズです。0を指定するとデフォルトのサイズになります。
+@default 22
+@type number
+
+@param padding
+@text 余白
+@desc アイコン説明ウィンドウの余白です。0を指定するとデフォルトの余白になります。
+@default 8
+@type number
+
+@param backOpacity
+@text 背景不透明度
+@desc アイコン説明ウィンドウの背景不透明度です。0を指定するとデフォルトの不透明度になります。
+@default 0
+@type number
+
+@param triggerType
+@text トリガータイプ
+@desc アイコン説明ウィンドウを表示するトリガーです。マウスオーバーはPC環境でのみ有効に動作します。
+@default click
+@type select
+@option クリック
+@value click
+@option 押し続け
+@value press
+@option マウスオーバー
+@value hover
+
+@param se
+@text 効果音
+@desc アイコン説明ウィンドウを表示する際に演奏する効果音です。
+@type struct<SE>
 */
 
-(function () {
+
+/*~struct~Description:ja
+@param iconIndex
+@text アイコン
+@desc 説明を表示するアイコンのインデックスです。
+@default 1
+@type icon
+
+@param caption
+@text 説明テキスト
+@desc アイコンの説明文です。制御文字が使えます。
+@type multiline_string
+*/
+
+/*~struct~SE:ja
+@param name
+@text SEファイル名
+@desc SEのファイル名です。
+@type file
+@require 1
+@dir audio/se/
+
+@param volume
+@text SEボリューム
+@desc SEのボリュームです。
+@default 90
+@type number
+@min 0
+@max 100
+
+@param pitch
+@text SEピッチ
+@desc SEのピッチです。
+@default 100
+@type number
+@min 50
+@max 150
+
+@param pan
+@text SEバランス
+@desc SEの左右バランスです。
+@default 0
+@type number
+@min -100
+@max 100
+*/
+
+(() => {
     'use strict';
-    //=============================================================================
-    // ユーザ書き換え領域 - 開始 -
-    //  高度な設定を記述しています。必要な場合は書き換えてください。
-    //=============================================================================
-    var settings = {
-        /* iconDesc:アイコンごとの説明文です。コマンドによって追加された場合、そちらを優先します。 */
-        iconDesc: {
-            1: '',
-            2: '',
-            3: '',
-        },
-        /* captionInfo:注釈ウィンドウの情報です。 */
-        captionInfo: {
-            /* フォントサイズ */
-            fontSize: 22,
-            /* 余白 */
-            padding: 8
-        },
-        /* se:アイコンをクリックした際の効果音情報です。ファイル名はパラメータから取得します。 */
-        se: {
-            volume: 90,
-            pitch: 100,
-            pan: 0
-        }
-    };
-    //=============================================================================
-    // ユーザ書き換え領域 - 終了 -
-    //=============================================================================
+    const script = document.currentScript;
+    const param = PluginManagerEx.createParameter(script);
 
-    var pluginName = 'IconDescription';
+    function findIconCaptionParam(iconIndex) {
+        return param.list.find(desc => desc.iconIndex === iconIndex);
+    }
 
-    var getParamString = function (paramNames) {
-        var value = getParamOther(paramNames);
-        return value == null ? '' : value;
-    };
-
-    var getParamBoolean = function (paramNames) {
-        var value = getParamOther(paramNames);
-        return (value || '').toUpperCase() === 'ON' || (value || '').toUpperCase() === 'FALSE';
-    };
-
-    var getParamOther = function (paramNames) {
-        if (!Array.isArray(paramNames)) paramNames = [paramNames];
-        for (var i = 0; i < paramNames.length; i++) {
-            var name = PluginManager.parameters(pluginName)[paramNames[i]];
-            if (name) return name;
-        }
-        return null;
-    };
-
-    var getCommandName = function (command) {
-        return (command || '').toUpperCase();
-    };
-
-    var getArgString = function (arg, upperFlg) {
-        arg = convertEscapeCharacters(arg);
-        return upperFlg ? arg.toUpperCase() : arg;
-    };
-
-    var getArgNumber = function (arg, min, max) {
-        if (arguments.length < 2) min = -Infinity;
-        if (arguments.length < 3) max = Infinity;
-        return (parseInt(convertEscapeCharacters(arg), 10) || 0).clamp(min, max);
-    };
-
-    var convertEscapeCharacters = function (text) {
-        if (text == null) text = '';
-        var window = SceneManager._scene._windowLayer.children[0];
-        return window ? window.convertEscapeCharacters(text) : text;
-    };
-
-    var concatArgs = function (args, start, end) {
-        if (!start) start = 0;
-        if (!end) end = args.length;
-        var result = '';
-        for (var i = start, n = end; i < n; i++) {
-            result += args[i] + (i < n - 1 ? ' ' : '');
-        }
-        return result;
-    };
-
-    //=============================================================================
-    // パラメータのバリデーション
-    //=============================================================================
-    var paramSeName = getParamString(['SeName', '効果音']);
-    var paramThroughWindow = getParamBoolean(['ThroughWindow', 'ウィンドウ透過']);
-
-    //=============================================================================
-    // Game_Interpreter
-    //  プラグインコマンドを追加定義します。
-    //=============================================================================
-    var _Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
-    Game_Interpreter.prototype.pluginCommand = function (command, args) {
-        _Game_Interpreter_pluginCommand.apply(this, arguments);
-        this.pluginCommandIconDescription(command, args);
-    };
-
-    Game_Interpreter.prototype.pluginCommandIconDescription = function (command, args) {
-        switch (getCommandName(command)) {
-            case 'ADD_ICON_DESC':
-            case 'アイコン説明追加':
-                $gameSystem.addIconDescription(getArgNumber(args[0]), getArgString(concatArgs(args, 1)));
-                break;
-        }
-    };
-
-    //=============================================================================
-    // Game_System
-    //  アイコン情報の登録と取得を追加します。
-    //=============================================================================
-    var _Game_System_initialize = Game_System.prototype.initialize;
-    Game_System.prototype.initialize = function () {
-        _Game_System_initialize.apply(this, arguments);
-        this._iconDescriptions = null;
-    };
-
-    Game_System.prototype.addIconDescription = function (id, desc) {
-        if (!this._iconDescriptions) this._iconDescriptions = {};
-        this._iconDescriptions[id] = desc;
-    };
-
-    Game_System.prototype.getIconDescription = function (id) {
-        return this._iconDescriptions ? this._iconDescriptions[id] : null;
-    };
-
-    //=============================================================================
-    // Scene_Base
-    //  ウィンドウのアイコンタッチを検出します。
-    //=============================================================================
-    var _Scene_Base_updateChildren = Scene_Base.prototype.updateChildren;
-    Scene_Base.prototype.updateChildren = function () {
-        _Scene_Base_updateChildren.apply(this, arguments);
-        if (!this._windowLayer) return;
-        this._windowLayer.children.some(function (windowObject) {
-            return windowObject.updateIconTouch(false);
-        });
-    };
-
-    //=============================================================================
-    // Window_Base
-    //  drawIconの位置を記憶してクリックされた場合にキャプションを表示します。
-    //=============================================================================
-    var _Window_Base_initialize = Window_Base.prototype.initialize;
-    Window_Base.prototype.initialize = function (x, y, width, height) {
-        _Window_Base_initialize.apply(this, arguments);
-        this._iconRects = {};
-    };
-
-    var _Window_Base_drawIcon = Window_Base.prototype.drawIcon;
+    const _Window_Base_drawIcon = Window_Base.prototype.drawIcon;
     Window_Base.prototype.drawIcon = function (iconIndex, x, y) {
         _Window_Base_drawIcon.apply(this, arguments);
-        this.addIconRect(iconIndex, x, y);
+        this.appendIconMap(iconIndex, x, y);
     };
 
-    Window_Base.prototype.addIconRect = function (iconIndex, x, y) {
-        var rect = new Rectangle(x, y, Window_Base._iconWidth, Window_Base._iconHeight);
-        this._iconRects[rect.x + ':' + rect.y] = { index: iconIndex, rect: rect };
-    };
-
-    Window_Base.prototype.updateIconTouch = function (test) {
-        if (this.isAnyTriggered() && this._captionWindow) {
-            this.eraseCaption();
-            return true;
+    Window_Base.prototype.clearIconMap = function () {
+        if (this._iconMap) {
+            this._iconMap.clear();
         }
-        if (!TouchInput.isTriggered() || !this.isTouchedInsideFrame()) return false;
-        var tx = this.canvasToLocalX(TouchInput.x) - this.padding;
-        var ty = this.canvasToLocalY(TouchInput.y) - this.padding;
-        var result = false;
-        for (var propName in this._iconRects) {
-            if (!this._iconRects.hasOwnProperty(propName)) continue;
-            var rectInfo = this._iconRects[propName];
-            if (rectInfo.rect.contains(tx, ty)) {
-                var text = $gameSystem.getIconDescription(rectInfo.index) || settings.iconDesc[rectInfo.index];
-                if (text) {
-                    if (!test) {
-                        this.popupCaption(text);
-                    }
-                    result = true;
-                }
-            }
-        }
-        return result;
     };
 
-    Window_Base.prototype.popupCaption = function (text) {
-        if (paramSeName) {
-            var se = settings.se;
-            se.name = paramSeName;
-            AudioManager.playSe(se);
-        }
-        if (!this._captionWindow) {
-            this._captionWindow = new Window_Caption(TouchInput.x, TouchInput.y, text);
-            this.parent.parent.addChild(this._captionWindow);
-        } else {
-            this._captionWindow.refresh(text);
-            this._captionWindow.x = TouchInput.x;
-            this._captionWindow.y = TouchInput.y;
-        }
-        TouchInput.clear();
-    };
-
-    Window_Base.prototype.eraseCaption = function () {
-        this.parent.parent.removeChild(this._captionWindow);
-        this._captionWindow = null;
-        TouchInput.clear();
-    };
-
-    Window_Base.prototype.isAnyTriggered = function () {
-        return Input.isTriggered('ok') || Input.isTriggered('escape') || Input.dir4 !== 0 ||
-            TouchInput.isTriggered() || TouchInput.isCancelled();
-    };
-    Window_Base.prototype.isTouchedInsideFrame = Window_Selectable.prototype.isTouchedInsideFrame;
-
-    //=============================================================================
-    // Window_Selectable
-    //  再描画時にアイコンリストを初期化します。
-    //=============================================================================
-    var _Window_Selectable_drawAllItems = Window_Selectable.prototype.drawAllItems;
-    Window_Selectable.prototype.drawAllItems = function () {
-        this._iconRects = {};
-        _Window_Selectable_drawAllItems.apply(this, arguments);
-    };
-
-    var _Window_Message_isTriggered = Window_Message.prototype.isTriggered;
-    Window_Message.prototype.isTriggered = function () {
-        var result = _Window_Message_isTriggered.apply(this, arguments);
-        if (result && this.updateIconTouch(true)) {
-            return false;
-        }
-        return result
-    };
-
-    var _Window_Help_refresh = Window_Help.prototype.refresh;
+    const _Window_Help_refresh = Window_Help.prototype.refresh;
     Window_Help.prototype.refresh = function (text) {
-        this._iconRects = {};
+        this.clearIconMap();
         _Window_Help_refresh.apply(this, arguments);
     };
 
-    var _Window_Message_startMessage = Window_Message.prototype.startMessage;
+    const _Window_Message_startMessage = Window_Message.prototype.startMessage;
     Window_Message.prototype.startMessage = function () {
-        this._iconRects = {};
+        this.clearIconMap();
         _Window_Message_startMessage.apply(this, arguments);
     };
 
-    var _Window_Message_terminateMessage = Window_Message.prototype.terminateMessage;
-    Window_Message.prototype.terminateMessage = function () {
-        this._iconRects = {};
-        _Window_Message_terminateMessage.apply(this, arguments);
+    const _Window_Selectable_refresh = Window_Selectable.prototype.refresh;
+    Window_Selectable.prototype.refresh = function () {
+        this.clearIconMap();
+        _Window_Selectable_refresh.apply(this, arguments);
     };
 
-    /**
-     * Window_Caption
-     * アイコン画像に対応するヘルプを表示します。
-     * @constructor
-     */
-    function Window_Caption() {
-        this.initialize.apply(this, arguments);
+    Window_Base.prototype.appendIconMap = function (iconIndex, x, y) {
+        if (!findIconCaptionParam(iconIndex)) {
+            return;
+        }
+        if (!this._iconMap) {
+            this._iconMap = new Map();
+        }
+        this._iconMap.set(`${x}:${y}`, { index: iconIndex, x: x + this.padding, y: y + this.padding });
+    };
+
+    const _Window_Base_update = Window_Base.prototype.update;
+    Window_Base.prototype.update = function () {
+        _Window_Base_update.apply(this, arguments);
+        if (this._iconMap && this.isOpen() && this.visible) {
+            this.updateIconCaption();
+        }
+    };
+
+    Window_Base.prototype.updateIconCaption = function () {
+        if (SceneManager.isTriggeredIconCaption()) {
+            const touchPos = new Point(TouchInput.x, TouchInput.y);
+            const localPos = this.worldTransform.applyInverse(touchPos);
+            const rect = new Rectangle(0, 0, ImageManager.iconWidth, ImageManager.iconHeight);
+            const icon = Array.from(this._iconMap.values()).find(icon => {
+                rect.x = icon.x;
+                rect.y = icon.y - (this.origin.y || 0);
+                return rect.contains(localPos.x, localPos.y);
+            });
+            if (icon) {
+                const worldPos = this.worldTransform.apply(new Point(0, 0));
+                const x = worldPos.x + rect.x;
+                const y = worldPos.y + rect.y;
+                SceneManager.addIconCaption(icon.index, x, y);
+            }
+        }
+    };
+
+    const _Sprite_StateIcon_update = Sprite_StateIcon.prototype.update;
+    Sprite_StateIcon.prototype.update = function () {
+        _Sprite_StateIcon_update.apply(this, arguments);
+        this.updateIconCaption();
+    };
+
+    Sprite_StateIcon.prototype.updateIconCaption = function () {
+        if (SceneManager.isTriggeredIconCaption() && this.isBeingTouched()) {
+            const localPos = new Point(-this.anchor.x * this.width, -this.anchor.y * this.height);
+            const worldPos = this.worldTransform.apply(localPos);
+            SceneManager.addIconCaption(this._iconIndex, worldPos.x, worldPos.y);
+        }
+    };
+
+    Sprite_StateIcon.prototype.isBeingTouched = function () {
+        const touchPos = new Point(TouchInput.x, TouchInput.y);
+        const localPos = this.worldTransform.applyInverse(touchPos);
+        // applyInverseがtouchPosと同じ値を返すケースがあり原因不明のため対症療法
+        if (touchPos.x === localPos.x && touchPos.y === localPos.y) {
+            const win = this.parent.parent;
+            if (win.x !== 0 || win.y !== 0) {
+                return false;
+            }
+        }
+        return this.hitTest(localPos.x, localPos.y);
+    };
+
+    Sprite_StateIcon.prototype.hitTest = function (x, y) {
+        const rect = new Rectangle(
+            -this.anchor.x * this.width,
+            -this.anchor.y * this.height,
+            this.width,
+            this.height
+        );
+        return rect.contains(x, y);
+    };
+
+    SceneManager.isTriggeredIconCaption = function () {
+        if (param.triggerType === 'press') {
+            return TouchInput.isPressed();
+        } else if (param.triggerType === 'hover') {
+            return true;
+        } else {
+            return TouchInput.isTriggered();
+        }
+    };
+
+    SceneManager.isCanceledIconCaption = function () {
+        if (!this.isExistIconCaption()) {
+            return false;
+        }
+        if (param.triggerType === 'press') {
+            return !TouchInput.isPressed();
+        } else if (param.triggerType === 'hover') {
+            return this._iconDescFrame + 10 < Graphics.frameCount;
+        } else {
+            return TouchInput.isTriggered();
+        }
+    };
+
+    SceneManager.isExistIconCaption = function () {
+        return !!this._iconCaption;
     }
 
-    Window_Caption.prototype = Object.create(Window_Base.prototype);
-    Window_Caption.prototype.constructor = Window_Caption;
-
-    Window_Caption.prototype.initialize = function (x, y, text) {
-        Window_Base.prototype.initialize.call(this, x, y, 100, 100);
-        this.refresh(text);
+    const _SceneManager_updateMain = SceneManager.updateMain;
+    SceneManager.updateMain = function () {
+        _SceneManager_updateMain.apply(this, arguments);
+        if (this.isCanceledIconCaption()) {
+            this.removeIconCaption();
+        }
     };
 
-    Window_Caption.prototype.refresh = function (text) {
-        this._text = text;
-        this.width = this.windowWidth();
-        this.height = this.windowHeight();
-        this.setPositionInScreen();
-        this.createContents();
-        this.drawTextEx(this._text, 0, 0);
+    SceneManager.addIconCaption = function (index, x, y) {
+        if (!findIconCaptionParam(index)) {
+            return;
+        }
+        this._iconDescFrame = Graphics.frameCount;
+        if (this._iconCaption?.isSameCaption(index, x, y)) {
+            return;
+        }
+        this.removeIconCaption();
+        if (param.se) {
+            AudioManager.playSe(param.se);
+        }
+        this._iconCaption = new Window_IconCaption(index, x, y);
+        this._scene.addChild(this._iconCaption);
+        TouchInput.update();
     };
 
-    Window_Caption.prototype.setPositionInScreen = function () {
-        if (this.x < 0) this.x = 0;
-        if (this.y < 0) this.y = 0;
-        if (this.x + this.width > Graphics.boxWidth) this.x = Graphics.boxWidth - this.width;
-        if (this.y + this.height > Graphics.boxHeight) this.y = Graphics.boxHeight - this.height;
+    SceneManager.removeIconCaption = function () {
+        if (!this._iconCaption) {
+            return;
+        }
+        this._scene.removeChild(this._iconCaption);
+        this._iconCaption = null;
+        TouchInput.update();
     };
 
-    Window_Caption.prototype.windowWidth = function () {
-        return this.drawTextEx(this._text, 0, this.contents.height) + this.padding * 2;
+    const _SceneManager_onSceneTerminate = SceneManager.onSceneTerminate;
+    SceneManager.onSceneTerminate = function () {
+        _SceneManager_onSceneTerminate.apply(this, arguments);
+        this.removeIconCaption();
     };
 
-    Window_Caption.prototype.windowHeight = function () {
-        return this.calcTextHeight({ text: this._text, index: 0 }) + this.padding * 2;
+    const _Window_Selectable_processTouch = Window_Selectable.prototype.processTouch;
+    Window_Selectable.prototype.processTouch = function () {
+        if (SceneManager.isExistIconCaption()) {
+            return;
+        }
+        _Window_Selectable_processTouch.apply(this, arguments);
     };
 
-    Window_Caption.prototype.standardPadding = function () {
-        return settings.captionInfo.padding;
+    const _Window_Message_isTriggered = Window_Message.prototype.isTriggered;
+    Window_Message.prototype.isTriggered = function () {
+        if (SceneManager.isExistIconCaption()) {
+            return;
+        }
+        return _Window_Message_isTriggered.apply(this, arguments);
     };
 
-    Window_Caption.prototype.standardFontSize = function () {
-        return settings.captionInfo.fontSize;
-    };
+    class Window_IconCaption extends Window_Base {
+        constructor(index, x, y) {
+            super(new Rectangle(x, y + ImageManager.iconHeight, 1, 1));
+            this._index = index;
+            this._x = x;
+            this._y = y;
+            this.setup();
+        }
+
+        isSameCaption(index, x, y) {
+            return this._index === index && this._x === x && this._y === y;
+        }
+
+        setup() {
+            const text = findIconCaptionParam(this._index).caption;
+            const rect = this.textSizeEx(text);
+            this.updatePadding();
+            this.width = rect.width + this.padding * 2;
+            this.height = rect.height + this.padding * 2;
+            this.createContents();
+            this.drawTextEx(text, 0, 0);
+            if (this.y + this.height > Graphics.height) {
+                this.y -= this.height + ImageManager.iconHeight;
+            }
+            if (this.x + this.width > Graphics.width) {
+                this.x = Math.max(0, Graphics.width - this.width);
+            }
+            this.hide();
+        }
+
+        update() {
+            super.update();
+            if (this.windowskin.isReady()) {
+                this.show();
+            }
+        }
+
+        resetFontSettings() {
+            super.resetFontSettings();
+            if (param.fontSize) {
+                this.contents.fontSize = param.fontSize;
+            }
+        }
+
+        updatePadding() {
+            super.updatePadding();
+            if (param.padding) {
+                this.padding = param.padding;
+            }
+        }
+
+        updateBackOpacity() {
+            super.updateBackOpacity();
+            if (param.backOpacity) {
+                this.backOpacity = param.backOpacity;
+            }
+        }
+
+        updateIconCaption() { }
+    }
+    window.Window_IconCaption = Window_IconCaption;
 })();
