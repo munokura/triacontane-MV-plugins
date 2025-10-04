@@ -195,7 +195,7 @@ this.resetHalfMoveDuringRouteForce();
 is applied to half-step movement.
 
 Distributed by:
-https://pixeldog.x.2nt.com/material_script.html
+https://github.com/munokura/PixelDOG-MV-plugins/blob/main/PD_8DirDash/PD_8DirDash.js
 
 2. When combined with OverpassTile.js, overpasses can be applied to
 half-step movement.
