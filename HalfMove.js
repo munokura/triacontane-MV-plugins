@@ -195,7 +195,7 @@ this.resetHalfMoveDuringRouteForce();
 is applied to half-step movement.
 
 Distributed by:
-https://web.archive.org/web/20201205022145/http://pixeldog.x.fc2.com/material_script.html
+https://pixeldog.x.2nt.com/material_script.html
 
 2. When combined with OverpassTile.js, overpasses can be applied to
 half-step movement.
@@ -610,7 +610,7 @@ this.resetHalfMoveDuringRouteForce();
 1. PD_8DirDash.jsと組み合わせると半歩移動に
 グラフィック変更を伴う8方向移動機能が反映されます。
 
-配布元：http://pixeldog.x.fc2.com/material_script.html
+配布元：https://pixeldog.x.2nt.com/material_script.html
 
 2. OverpassTile.jsと組み合わせると半歩移動に
 立体交差を適用できます。
